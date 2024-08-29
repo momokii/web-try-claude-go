@@ -1,0 +1,257 @@
+{{ template "base/base-header" . }}
+
+<body>
+
+    <div class="container">
+        <!--====== PRICING STYLE ONE START ======-->
+        <section class="pricing-area pricing-one">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-xxl-6 col-xl-7 col-lg-8">
+                        <div class="section-title text-center">
+                            <h2 class="mb-3 fw-bold">Medium Roasting</h2>
+                            <p class="text-lg">
+                                Mencoba implementasi prompting pada Claude Sonnet-3.5 API dengan melakukan crawling data
+                                akun medium berdasarkan input data username akun medium pada form yang disediakan di
+                                bawah.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-6 col-md-7 col-sm-9" id="cardInput">
+                        <div class="pricing-style-one d-flex flex-column h-100">
+                            <div class="pricing-header text-center">
+                                <h3 class="sub-title">Medium Roast</h3>
+                                <h6 class="year mt-3 text-justify">Mari mencoba roasting akun medium anda. masukan username medium ada pada field di bawah. medium.com/@username, maka masukan username saja.</h6>
+
+                                <div class="form-style form-style-five ">
+                                    <div class="row">
+                                        <div class="col-lg-12 justify-content-center">
+                                            <div class="form-input mt-4">
+                                                <form action="post" id="postMedium" method="post">
+                                                    <label>Medium Username</label>
+                                                    <div class="input-items default">
+                                                        <input type="text" placeholder="mari mengisi" name="username" max="25" required/>
+                                                        <i class="lni lni-user"></i>
+                                                    </div>
+                                                    <label>Bahasa Output</label>
+                                                    <div class="pricing-btn rounded-buttons text-center">
+                                                        <button class="btn primary-btn rounded-full" type="submit">
+                                                            Submit
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div class="bottom-shape">
+                                <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 112.35">
+                                    <defs>
+                                        <style>
+                                            .color-1 {
+                                                fill: #2bdbdc;
+                                                isolation: isolate;
+                                            }
+
+                                            .cls-1 {
+                                                opacity: 0.1;
+                                            }
+
+                                            .cls-2 {
+                                                opacity: 0.2;
+                                            }
+
+                                            .cls-3 {
+                                                opacity: 0.4;
+                                            }
+
+                                            .cls-4 {
+                                                opacity: 0.6;
+                                            }
+                                        </style>
+                                    </defs>
+                                    <title>bottom-part1</title>
+                                    <g>
+                                        <g data-name="Group 747">
+                                            <path data-name="Path 294" class="cls-1 color-1"
+                                                d="M0,24.21c120-55.74,214.32,2.57,267,0S349.18,7.4,349.18,7.4V82.35H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 297" class="cls-2 color-1"
+                                                d="M350,34.21c-120-55.74-214.32,2.57-267,0S.82,17.4.82,17.4V92.35H350Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 296" class="cls-3 color-1"
+                                                d="M0,44.21c120-55.74,214.32,2.57,267,0S349.18,27.4,349.18,27.4v74.95H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 295" class="cls-4 color-1"
+                                                d="M349.17,54.21c-120-55.74-214.32,2.57-267,0S0,37.4,0,37.4v74.95H349.17Z"
+                                                transform="translate(0 0)" />
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                        <!-- single pricing -->
+                    </div>
+
+                    <div class="col-lg-6 col-md-7 col-sm-9" style="display: none;" id="cardResult">
+                        <div class="pricing-style-one d-flex flex-column h-100">
+                            <div class="pricing-header text-center">
+                                <h3 class="sub-title">Hasil</h3>
+                                <h6 class="year mt-3">Saya cuma nampilin profilnya sama hasilnya ya,  hehe.</h6>
+                            </div>
+                            <div class="pricing-list">
+                                <div class="user-info">
+                                    <!-- <img src="./public/test.jpg" alt="User Image" class="rounded-circle mx-auto d-block" style="width: 100px; height: 100px;" id="userphoto"> -->
+                                    <h5 class="mt-3 text-center" id="username">UserName</h5>
+                                    <h6 class="mt-3 text-center" id="userfollower">Follower</h5>
+                                    <p class="mt-2 text-center" id="userbio">This is a short bio or additional info about the user.</p>
+                                </div>
+
+                                <hr>
+
+                                <p class="text text-justify" id="resultroast"></p>
+                            </div>
+                            <div class="pricing-btn rounded-buttons text-center">
+                                <a class="btn primary-btn rounded-full" href="/medium">
+                                    Ulangi
+                                </a>
+                            </div>
+                            <div class="bottom-shape">
+                                <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 112.35">
+                                    <defs>
+                                        <style>
+                                            .color-1 {
+                                                fill: #2bdbdc;
+                                                isolation: isolate;
+                                            }
+
+                                            .cls-1 {
+                                                opacity: 0.1;
+                                            }
+
+                                            .cls-2 {
+                                                opacity: 0.2;
+                                            }
+
+                                            .cls-3 {
+                                                opacity: 0.4;
+                                            }
+
+                                            .cls-4 {
+                                                opacity: 0.6;
+                                            }
+                                        </style>
+                                    </defs>
+                                    <title>bottom-part1</title>
+                                    <g>
+                                        <g data-name="Group 747">
+                                            <path data-name="Path 294" class="cls-1 color-1"
+                                                d="M0,24.21c120-55.74,214.32,2.57,267,0S349.18,7.4,349.18,7.4V82.35H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 297" class="cls-2 color-1"
+                                                d="M350,34.21c-120-55.74-214.32,2.57-267,0S.82,17.4.82,17.4V92.35H350Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 296" class="cls-3 color-1"
+                                                d="M0,44.21c120-55.74,214.32,2.57,267,0S349.18,27.4,349.18,27.4v74.95H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 295" class="cls-4 color-1"
+                                                d="M349.17,54.21c-120-55.74-214.32,2.57-267,0S0,37.4,0,37.4v74.95H349.17Z"
+                                                transform="translate(0 0)" />
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                        <!-- single pricing -->
+                    </div>
+
+                </div>
+                <!-- row -->
+            </div>
+            <!-- container -->
+        </section>
+        <!--====== PRICING STYLE ONE ENDS ======-->
+
+        <div class="row justify-content-center">
+            <div>
+                <div class="pricing-btn rounded-buttons text-center mb-5">
+                    <a class="btn btn-danger rounded-full" href="/">
+                        Kembali
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ template "base/footer" . }}
+
+    {{ template "components/loading" .}}
+
+    {{ template "components/modal-infor" .}}
+</body>
+
+<script>
+    document.getElementById('postMedium').addEventListener('submit', function (event) {
+            // Show loading modal
+            document.getElementById('loadingModal').style.display = 'flex';
+            const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'));
+
+            let cardInput = document.getElementById('cardInput');
+            let cardResult = document.getElementById('cardResult');
+            // user data
+            let username = document.getElementById('username');
+            let userfollower = document.getElementById('userfollower');
+            let userbio = document.getElementById('userbio');
+            //let userphoto = document.getElementById('userphoto');
+            let resultroast = document.getElementById('resultroast');
+
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this);
+
+            // Send the form data to the server
+            fetch('/medium', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading modal
+                    // console.log(data)
+                    document.getElementById('loadingModal').style.display = 'none';
+
+                    if (data.error) {
+                        document.getElementById('modalMessage').innerHTML = data.message
+                        modalInfo.show()
+                    } else {
+                        cardInput.style.display = 'none';
+                        cardResult.style.display = 'flex';
+
+                        username.innerHTML = data.Profile.name;
+                        userfollower.innerHTML = data.Profile.follower;
+                        userbio.innerHTML = data.Profile.bio;
+                        //userphoto.src = data.Profile.photo;
+                        resultroast.innerHTML = data.Data;
+                        
+                    }
+                })
+                .catch((error) => {
+                    // Hide loading modal
+                    document.getElementById('loadingModal').style.display = 'none';
+                    
+                    // Show error message
+                    document.getElementById('modalMessage').innerHTML = error.message
+                    modalInfo.show()
+                })
+                .finally(() => {
+                    // Reset form
+                    this.reset();
+                });
+        });
+</script>
+
+</html>

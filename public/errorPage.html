@@ -1,0 +1,16 @@
+{{ template "base/base-header" .}}
+
+<body>
+
+    <div class="d-flex flex-column justify-content-center align-items-center" style="height: 100vh;">
+        <div class="error-code">{{ .Code }}</div>
+        <div class="error-message">
+            <h5>{{ .Error }}</h5>
+        </div>
+        <div class="error-description">Yuk, coba kembali saja.</div>
+        <a href="/" class="btn btn-primary back-button">Kembali ke pusat</a>
+    </div>
+
+</body>
+
+</html>

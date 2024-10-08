@@ -30,7 +30,7 @@ func main() {
 		},
 	})
 	app.Use(cors.New())
-	app.Use(logger.New())
+	app.Use(logger.New()) 
 	app.Use(helmet.New())
 	// not using rate limiter for now
 	// app.Use(limiter.New(limiter.Config{

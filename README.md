@@ -1,4 +1,4 @@
-# Web Based Project using Claude API
+# Web Based Scrapping Project and Analysis using Claude Sonnet 3.5 API
 
 ## Getting Started
 

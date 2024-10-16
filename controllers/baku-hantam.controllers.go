@@ -15,9 +15,8 @@ func ViewBakuHantam(c *fiber.Ctx) error {
 
 func GetBakuHantamTopic(c *fiber.Ctx) error {
 	topicList := utils.GetBakuHantamTopic()
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"Topic": topicList,
+	return utils.ResponseWithData(c, fiber.StatusOK, "List of Bakuhantam Topic", fiber.Map{
+		"topic": topicList,
 	})
 }
 
@@ -34,31 +33,22 @@ func PostBakuHantam(c *fiber.Ctx) error {
 
 	claudeResp, err := utils.SendOneMessage(prompt)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	claudeRespMsg, ok := claudeResp.(map[string]interface{})["content"].([]interface{})
 	if !ok || len(claudeRespMsg) == 0 {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "claude response not found",
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
 	}
 
 	msg, ok := claudeRespMsg[0].(map[string]interface{})
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "error mashe",
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"Data":      msg["text"],
-		"TopicName": topicName,
-		"Topic":     "https://bakuhantam.dev" + topic,
+	return utils.ResponseWithData(c, fiber.StatusOK, "Bakuhantam Response", fiber.Map{
+		"content":    msg["text"],
+		"topic_name": topicName,
+		"topic":      "https://bakuhantam.dev" + topic,
 	})
 }

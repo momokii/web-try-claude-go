@@ -30,7 +30,7 @@ func main() {
 		},
 	})
 	app.Use(cors.New())
-	app.Use(logger.New()) 
+	app.Use(logger.New())
 	app.Use(helmet.New())
 	// not using rate limiter for now
 	// app.Use(limiter.New(limiter.Config{
@@ -55,11 +55,11 @@ func main() {
 	})
 
 	app.Get("/medium", controllers.ViewMedium)
-	app.Post("/medium", controllers.PostMedium)
+	app.Post("/api/medium", controllers.PostMedium)
 
 	app.Get("/baku-hantam", controllers.ViewBakuHantam)
-	app.Post("/baku-hantam", controllers.PostBakuHantam)
-	app.Get("/baku-hantam-topic", controllers.GetBakuHantamTopic)
+	app.Post("/api/baku-hantam", controllers.PostBakuHantam)
+	app.Get("/api/baku-hantam/topics", controllers.GetBakuHantamTopic)
 
 	app.Listen(":3000")
 

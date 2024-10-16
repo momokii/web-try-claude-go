@@ -22,30 +22,21 @@ func PostMedium(c *fiber.Ctx) error {
 
 	claudeResp, err := utils.SendOneMessage(prompt)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": err.Error(),
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	claudeRespMsg, ok := claudeResp.(map[string]interface{})["content"].([]interface{})
 	if !ok || len(claudeRespMsg) == 0 {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "claude response not found",
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
 	}
 
 	msg, ok := claudeRespMsg[0].(map[string]interface{})
 	if !ok {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error":   true,
-			"message": "error mashe",
-		})
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"Profile": mediumData.MediumProfileUser,
-		"Data":    msg["text"],
+	return utils.ResponseWithData(c, fiber.StatusOK, "medium data roasting", fiber.Map{
+		"profile": mediumData.MediumProfileUser,
+		"content": msg["text"],
 	})
 }

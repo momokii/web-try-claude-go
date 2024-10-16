@@ -51,6 +51,7 @@ func SendOneMessage(content string) (interface{}, error) {
 		return "", err
 	}
 
+	// send request to Claude
 	req, err := http.NewRequest("POST", os.Getenv("CLAUDE_BASE_URL"), bytes.NewBuffer(reqBodyJson))
 	if err != nil {
 		return "", err
@@ -67,6 +68,7 @@ func SendOneMessage(content string) (interface{}, error) {
 	}
 	defer resp.Body.Close()
 
+	// decode response from Claude to map
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return "", err

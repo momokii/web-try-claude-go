@@ -195,63 +195,59 @@
 </body>
 
 <script>
-    document.getElementById('postMedium').addEventListener('submit', function (event) {
-            // Show loading modal
-            document.getElementById('loadingModal').style.display = 'flex';
-            const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'));
+    const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'));
 
-            let cardInput = document.getElementById('cardInput');
-            let cardResult = document.getElementById('cardResult');
-            // user data
-            let username = document.getElementById('username');
-            let userfollower = document.getElementById('userfollower');
-            let userbio = document.getElementById('userbio');
-            //let userphoto = document.getElementById('userphoto');
-            let resultroast = document.getElementById('resultroast');
+    $(document).ready(async function () {
+        $('#postMedium').on('submit', async function() {
+            // Show loading modal
+            $('#loadingModal').css('display', 'flex')
+
+            const cardInput = $('#cardInput')
+            const cardResult = $('#cardResult')
+
+            const username = $('#username')
+            const userfollower = $('#userfollower')
+            const userbio = $('#userbio')
+
+            const resultroast = $('#resultroast')
 
             event.preventDefault(); // Prevent default form submission
 
             const formData = new FormData(this);
 
-            // Send the form data to the server
-            fetch('/medium', {
+            try {
+
+                const response = await fetch('/api/medium', {
                     method: 'POST',
                     body: formData,
                 })
-                .then(response => response.json())
-                .then(data => {
-                    // Hide loading modal
-                    // console.log(data)
-                    document.getElementById('loadingModal').style.display = 'none';
+                const res = await response.json()
 
-                    if (data.error) {
-                        document.getElementById('modalMessage').innerHTML = data.message
-                        modalInfo.show()
-                    } else {
-                        cardInput.style.display = 'none';
-                        cardResult.style.display = 'flex';
+                $('#loadingModal').css('display', 'none')
 
-                        username.innerHTML = data.Profile.name;
-                        userfollower.innerHTML = data.Profile.follower;
-                        userbio.innerHTML = data.Profile.bio;
-                        //userphoto.src = data.Profile.photo;
-                        resultroast.innerHTML = data.Data;
-                        
-                    }
-                })
-                .catch((error) => {
-                    // Hide loading modal
-                    document.getElementById('loadingModal').style.display = 'none';
-                    
-                    // Show error message
-                    document.getElementById('modalMessage').innerHTML = error.message
+                if(res.error) {
+                    $('#modalMessage').html(res.message)
                     modalInfo.show()
-                })
-                .finally(() => {
-                    // Reset form
-                    this.reset();
-                });
-        });
+                } else {
+                    cardInput.css('display', 'none')
+                    cardResult.css('display', 'flex')
+
+                    username.html(res.data.profile.name)
+                    userfollower.html(res.data.profile.follower)
+                    userbio.html(res.data.profile.bio)
+                    resultroast.html(res.data.content)
+                }
+
+            } catch(e) {
+                $('#loadingModal').css('display', 'none')
+                $('#modalMessage').html(e.message)
+                modalInfo.show()
+            } finally {
+                this.reset()
+            }
+            
+        })
+    })
 </script>
 
 </html>

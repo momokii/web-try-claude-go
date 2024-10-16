@@ -191,105 +191,85 @@
     // modal initiation
     const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'));
 
-    document.addEventListener("DOMContentLoaded", function() {
-        const selectElement = document.getElementById("dynamicSelect");
+    $(document).ready(async function () {
+        const selectElement = $('#dynamicSelect')
 
-        document.getElementById('loadingModal').style.display = 'flex';
+        $('#loadingModal').css('display', 'flex')
 
-        fetch('/baku-hantam-topic', {
+        try {
+            const response = await fetch('/api/baku-hantam/topics', {
                 method: 'GET'
             })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading modal
-                // console.log(data)
-                document.getElementById('loadingModal').style.display = 'none';
+            const res = await response.json()
 
-                if (data.error) {
-                    document.getElementById('modalMessage').innerHTML = data.message
-                    modalInfo.show()
-                } else {
-                    // console.log("datanya: ", data)
-                    data.Topic.forEach(item => {
-                        // console.log(item)
-                        const option = document.createElement("option");
-                        option.value = item.link;
-                        option.textContent = item.title;
-                        selectElement.appendChild(option);
-                    });
-                    
-                }
-            })
-            .catch((error) => {
-                // Hide loading modal
-                document.getElementById('loadingModal').style.display = 'none';
+            $('#loadingModal').css('display', 'none')
 
-                // Show error message
-                document.getElementById('modalMessage').innerHTML = data.message
+            if (res.error) {
+                $('#modalMessage').html(res.message)
                 modalInfo.show()
-            })
-    });
-
-    document.getElementById("postBakuHantam").addEventListener("submit", function(event) {
-        const selectElement = document.getElementById("dynamicSelect"); 
-
-        document.getElementById('loadingModal').style.display = 'flex';
-
-        let cardInput = document.getElementById('cardInput');
-        let cardResult = document.getElementById('cardResult');
-
-        let topicNameRes = document.getElementById("topicNameRes");
-        let linkCoordinat = document.getElementById("linkCoordinat");
-        let resultRes = document.getElementById("resultRes");
-
-        event.preventDefault(); 
-
-        if (selectElement.value === "" || selectElement.value === "Pilih opsi") {
-            document.getElementById('loadingModal').style.display = 'none';
-            document.getElementById('modalMessage').innerHTML = '<p class="text-danger">' + "Pilih topik dulu kocak" + '</p>'
+            } else {
+                res.data.topic.forEach(item => {
+                    const option = $('<option></option>').text(item.title).val(item.link)
+                    selectElement.append(option)
+                })
+            }
+        } catch(e) {
+            $('#loadingModal').css('display', 'none')
+            $('#modalMessage').html(e.message)
             modalInfo.show()
-            return
         }
+        
 
-        const formData = new FormData(this);
-        formData.append('topicName', selectElement.options[selectElement.selectedIndex].text);
+        $('#postBakuHantam').on('submit', async function () {
+            const selectElement = $('#dynamicSelect') // get select value
 
-        fetch('/baku-hantam', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide loading modal
-                // console.log(data)
-                document.getElementById('loadingModal').style.display = 'none';
+            $('#loadingModal').css('display', 'flex')
 
-                if (data.error) {
-                    document.getElementById('modalMessage').innerHTML = data.message
+            // get card input and card result
+            const cardInput = $('#cardInput')
+            const cardResult = $('#cardResult')
+
+            const topicNameRes = $('#topicNameRes')
+            const linkCoordinat = $('#linkCoordinat')
+            const resultRes = $('#resultRes')
+
+            event.preventDefault()
+
+            if(selectElement.val() === '' || selectElement.val() === 'Pilih opsi') {
+                $('#loadingModal').css('display', 'none')
+                $('#modalMessage').html('<p class="text-danger">Pilih topik dulu kocak</p>')
+                modalInfo.show()
+                return
+            }
+
+            const formData = new FormData(this)
+            formData.append('topicName', selectElement[0].options[selectElement[0].selectedIndex].text)
+
+            try {
+                const response = await fetch('/api/baku-hantam', {
+                    method: 'POST',
+                    body: formData
+                })
+                const res = await response.json()
+
+                $('#loadingModal').css('display', 'none')
+                if (res.error) {
+                    $('#modalMessage').html(res.message)
                     modalInfo.show()
                 } else {
-                    console.log("datanya: ", data.Data)
-                    console.log("datanya: ", data.TopicName)
-                    console.log(cardInput)
-                    console.log(cardResult)
+                    cardInput.css('display', 'none')
+                    cardResult.css('display', 'flex')
 
-                    cardInput.style.display = 'none';
-                    cardResult.style.display = 'flex';
-
-                    topicNameRes.innerHTML = data.TopicName;
-                    linkCoordinat.href = data.Topic;
-                    resultRes.innerHTML = data.Data;
-                    
+                    topicNameRes.html(res.data.topic_name)
+                    linkCoordinat.attr('href', res.data.topic)
+                    resultRes.html(res.data.content)
                 }
-            })
-            .catch((error) => {
-                // Hide loading modal
-                document.getElementById('loadingModal').style.display = 'none';
 
-                // Show error message
-                document.getElementById('modalMessage').innerHTML = error.message
+            } catch (e) {
+                $('#loadingModal').css('display', 'none')
+                $('#modalMessage').html(e.message)
                 modalInfo.show()
-            })
-
-    });
+            }
+        })
+    })
 </script>

@@ -350,15 +350,9 @@
                             }
                         })
 
-                        // Tambah deskripsi di bawah tombol
-                        const description = $('<small></small>');
-                        description.addClass('btn-description');
-                        description.text(data.description);
-
                         // Bungkus button dan deskripsi dalam div
                         const buttonWrapper = $('<div></div>');
                         buttonWrapper.append(button);
-                        buttonWrapper.append(description);
 
                         titleOpt.append(button)
                     })

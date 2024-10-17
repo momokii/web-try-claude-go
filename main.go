@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/html/v2"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -32,6 +33,7 @@ func main() {
 	app.Use(cors.New())
 	app.Use(logger.New())
 	app.Use(helmet.New())
+	app.Use(recover.New())
 	// not using rate limiter for now
 	// app.Use(limiter.New(limiter.Config{
 	// 	Max:               15,
@@ -60,6 +62,11 @@ func main() {
 	app.Get("/baku-hantam", controllers.ViewBakuHantam)
 	app.Post("/api/baku-hantam", controllers.PostBakuHantam)
 	app.Get("/api/baku-hantam/topics", controllers.GetBakuHantamTopic)
+
+	app.Get("/stories", controllers.ViewStories)
+	app.Post("/api/stories/titles", controllers.CreateStoriesTitle)
+	app.Post("/api/stories/paragraphs", controllers.CreateFirstStoriesPart)
+	app.Post("/api/stories/paragraphs/:data", controllers.CreateStoriesParagraph)
 
 	app.Listen(":3000")
 

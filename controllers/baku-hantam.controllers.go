@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"scrapper-test/models"
 	"scrapper-test/utils"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,23 +32,25 @@ func PostBakuHantam(c *fiber.Ctx) error {
 
 	prompt += fmt.Sprintf("%+v", topicData)
 
-	claudeResp, err := utils.SendOneMessage(prompt)
+	prompt_input := []models.ClaudeMessageReq{
+		{
+			Role:    "user",
+			Content: prompt,
+		},
+	}
+
+	claudeResp, err := utils.ClaudeGetContentDataResp(prompt_input)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	claudeRespMsg, ok := claudeResp.(map[string]interface{})["content"].([]interface{})
-	if !ok || len(claudeRespMsg) == 0 {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
-	}
-
-	msg, ok := claudeRespMsg[0].(map[string]interface{})
+	content, ok := claudeResp["text"].(string)
 	if !ok {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
 	}
 
 	return utils.ResponseWithData(c, fiber.StatusOK, "Bakuhantam Response", fiber.Map{
-		"content":    msg["text"],
+		"content":    content,
 		"topic_name": topicName,
 		"topic":      "https://bakuhantam.dev" + topic,
 	})

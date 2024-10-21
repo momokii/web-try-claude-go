@@ -2,26 +2,36 @@ package controllers
 
 import (
 	"fmt"
-	"scrapper-test/models"
 	"scrapper-test/utils"
+	"scrapper-test/utils/claude"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func ViewBakuHantam(c *fiber.Ctx) error {
+type BakuHantamController struct {
+	claude claude.ClaudeAPI
+}
+
+func NewBakuHantamController(claude claude.ClaudeAPI) *BakuHantamController {
+	return &BakuHantamController{
+		claude: claude,
+	}
+}
+
+func (h *BakuHantamController) ViewBakuHantam(c *fiber.Ctx) error {
 	return c.Render("baku-hantam", fiber.Map{
 		"Title": "Bakun Hantam X",
 	})
 }
 
-func GetBakuHantamTopic(c *fiber.Ctx) error {
+func (h *BakuHantamController) GetBakuHantamTopic(c *fiber.Ctx) error {
 	topicList := utils.GetBakuHantamTopic()
 	return utils.ResponseWithData(c, fiber.StatusOK, "List of Bakuhantam Topic", fiber.Map{
 		"topic": topicList,
 	})
 }
 
-func PostBakuHantam(c *fiber.Ctx) error {
+func (h *BakuHantamController) PostBakuHantam(c *fiber.Ctx) error {
 
 	topic := c.FormValue("topic")
 	topicName := c.FormValue("topicName")
@@ -32,22 +42,19 @@ func PostBakuHantam(c *fiber.Ctx) error {
 
 	prompt += fmt.Sprintf("%+v", topicData)
 
-	prompt_input := []models.ClaudeMessageReq{
+	prompt_input := []claude.ClaudeMessageReq{
 		{
 			Role:    "user",
 			Content: prompt,
 		},
 	}
 
-	claudeResp, err := utils.ClaudeGetContentDataResp(prompt_input)
+	claudeResp, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 256*10)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	content, ok := claudeResp["text"].(string)
-	if !ok {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
-	}
+	content := claudeResp.Text
 
 	return utils.ResponseWithData(c, fiber.StatusOK, "Bakuhantam Response", fiber.Map{
 		"content":    content,

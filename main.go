@@ -1,7 +1,9 @@
 package main
 
 import (
+	"os"
 	"scrapper-test/controllers"
+	"scrapper-test/utils/claude"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -14,6 +16,17 @@ import (
 
 func main() {
 	engine := html.New("./public", ".html")
+	claude := claude.New(
+		os.Getenv("CLAUDE_API_KEY"),
+		os.Getenv("CLAUDE_BASE_URL"),
+		os.Getenv("CLAUDE_MODEL"),
+		os.Getenv("CLAUDE_ANTHROPIC_VERSION"),
+	)
+
+	// controller
+	mediumController := controllers.NewMediumController(claude)
+	bakuHantamController := controllers.NewBakuHantamController(claude)
+	storiesController := controllers.NewStoriesController(claude)
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -56,17 +69,17 @@ func main() {
 		})
 	})
 
-	app.Get("/medium", controllers.ViewMedium)
-	app.Post("/api/medium", controllers.PostMedium)
+	app.Get("/medium", mediumController.ViewMedium)
+	app.Post("/api/medium", mediumController.PostMedium)
 
-	app.Get("/baku-hantam", controllers.ViewBakuHantam)
-	app.Post("/api/baku-hantam", controllers.PostBakuHantam)
-	app.Get("/api/baku-hantam/topics", controllers.GetBakuHantamTopic)
+	app.Get("/baku-hantam", bakuHantamController.ViewBakuHantam)
+	app.Post("/api/baku-hantam", bakuHantamController.PostBakuHantam)
+	app.Get("/api/baku-hantam/topics", bakuHantamController.GetBakuHantamTopic)
 
-	app.Get("/stories", controllers.ViewStories)
-	app.Post("/api/stories/titles", controllers.CreateStoriesTitle)
-	app.Post("/api/stories/paragraphs", controllers.CreateFirstStoriesPart)
-	app.Post("/api/stories/paragraphs/:data", controllers.CreateStoriesParagraph)
+	app.Get("/stories", storiesController.ViewStories)
+	app.Post("/api/stories/titles", storiesController.CreateStoriesTitle)
+	app.Post("/api/stories/paragraphs", storiesController.CreateFirstStoriesPart)
+	app.Post("/api/stories/paragraphs/:data", storiesController.CreateStoriesParagraph)
 
 	app.Listen(":3000")
 

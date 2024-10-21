@@ -5,18 +5,29 @@ import (
 	"fmt"
 	"scrapper-test/models"
 	"scrapper-test/utils"
+	"scrapper-test/utils/claude"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func ViewStories(c *fiber.Ctx) error {
+type StoriesController struct {
+	claude claude.ClaudeAPI
+}
+
+func NewStoriesController(claude claude.ClaudeAPI) *StoriesController {
+	return &StoriesController{
+		claude: claude,
+	}
+}
+
+func (h *StoriesController) ViewStories(c *fiber.Ctx) error {
 	return c.Render("stories", fiber.Map{
 		"Title": "Create Your Own Stories",
 	})
 }
 
-func CreateStoriesTitle(c *fiber.Ctx) error {
+func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 
 	var parsedResponse models.StoriesCreateTitleFormat
 
@@ -31,33 +42,30 @@ func CreateStoriesTitle(c *fiber.Ctx) error {
 
 	{"titles": [{"title", "description"}]}`, inputUser.Theme, inputUser.Language, inputUser.Language)
 
-	prompt_input := []models.ClaudeMessageReq{
+	prompt_input := []claude.ClaudeMessageReq{
 		{
 			Role:    "user",
 			Content: prompt,
 		},
 	}
 
-	claudeRes, err := utils.ClaudeGetContentDataResp(prompt_input)
+	claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 10*512)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	content, ok := claudeRes["text"].(string)
-	if !ok {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
-	}
+	content := claudeRes.Text
 
 	if err = json.NewDecoder(strings.NewReader(content)).Decode(&parsedResponse); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	return utils.ResponseWithData(c, fiber.StatusOK, "create stories title", fiber.Map{
-		"titles": parsedResponse.Titles,
+		"titles": parsedResponse,
 	})
 }
 
-func CreateFirstStoriesPart(c *fiber.Ctx) error {
+func (h *StoriesController) CreateFirstStoriesPart(c *fiber.Ctx) error {
 
 	var parsedResponse models.StoriesCreateParagraph
 
@@ -74,22 +82,19 @@ func CreateFirstStoriesPart(c *fiber.Ctx) error {
 
 	{ "paragraph", "choices" : ["choice"]}`, inputUser.Title, inputUser.Theme, inputUser.Description, inputUser.Language)
 
-	prompt_input := []models.ClaudeMessageReq{
+	prompt_input := []claude.ClaudeMessageReq{
 		{
 			Role:    "user",
 			Content: prompt,
 		},
 	}
 
-	claudeRes, err := utils.ClaudeGetContentDataResp(prompt_input)
+	claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 512*10)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	content, ok := claudeRes["text"].(string)
-	if !ok {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
-	}
+	content := claudeRes.Text
 
 	if err = json.NewDecoder(strings.NewReader(content)).Decode(&parsedResponse); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
@@ -101,10 +106,11 @@ func CreateFirstStoriesPart(c *fiber.Ctx) error {
 	})
 }
 
-func CreateStoriesParagraph(c *fiber.Ctx) error {
+func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 
 	var parsedResponse models.StoriesCreateParagraph
 	var prompt string
+
 	data := c.Params("data")
 	if data != "next" {
 		data = "end"
@@ -157,22 +163,19 @@ func CreateStoriesParagraph(c *fiber.Ctx) error {
 		`, inputUser.Title, inputUser.Description, inputUser.Theme, inputUser.Language, inputUser.Paragraph, inputUser.Choice)
 	}
 
-	prompt_input := []models.ClaudeMessageReq{
+	prompt_input := []claude.ClaudeMessageReq{
 		{
 			Role:    "user",
 			Content: prompt,
 		},
 	}
 
-	claudeRes, err := utils.ClaudeGetContentDataResp(prompt_input)
+	claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 512*10)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	content, ok := claudeRes["text"].(string)
-	if !ok {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, "claude response not found")
-	}
+	content := claudeRes.Text
 
 	if err = json.NewDecoder(strings.NewReader(content)).Decode(&parsedResponse); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())

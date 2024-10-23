@@ -1,5 +1,7 @@
 package claude
 
+// create document for claude dto
+
 type ClaudeMessageReq struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
@@ -9,6 +11,23 @@ type ClaudeReqBody struct {
 	Model     string             `json:"model"`
 	MaxTokens int                `json:"max_tokens"`
 	Message   []ClaudeMessageReq `json:"messages"`
+}
+
+type ClaudeContentVision struct {
+	Type   string `json:"type"`
+	Source struct {
+		Type      string `json:"type"`
+		MediaType string `json:"media_type"`
+		Data      string `json:"data"`
+	} `json:"source"`
+}
+
+type ClaudeRespError struct {
+	Type  string `json:"type"`
+	Error struct {
+		Type    string `json:"type"`
+		Message string `json:"message"`
+	} `json:"error"`
 }
 
 type ClaudeContentResp struct {

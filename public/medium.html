@@ -11,7 +11,7 @@
                         <div class="section-title text-center">
                             <h2 class="mb-3 fw-bold">Medium Roasting</h2>
                             <p class="text-lg">
-                                Mencoba implementasi prompting pada Claude Sonnet-3.5 API dengan melakukan crawling data
+                                Mencoba implementasi prompting pada Claude Sonnet-3.5 API & GPT-4o dengan melakukan crawling data
                                 akun medium berdasarkan input data username akun medium pada form yang disediakan di
                                 bawah.
                             </p>
@@ -30,11 +30,20 @@
                                         <div class="col-lg-12 justify-content-center">
                                             <div class="form-input mt-4">
                                                 <form action="post" id="postMedium" method="post">
-                                                    <label>Medium Username</label>
-                                                    <div class="input-items default">
-                                                        <input type="text" placeholder="mari mengisi" name="username" max="25" required/>
-                                                        <i class="lni lni-user"></i>
+
+                                                    <div class="mb-3">
+                                                        <small for="username" class="form-text text-muted text-left fw-bold">Username</small>
+                                                        <input type="text" placeholder="mari mengisi" name="username" maxlength="25" class="form-control" required/>
                                                     </div>
+                                                    
+                                                    <div class="mb-3">
+                                                        <small for="model" class="form-text text-muted text-left fw-bold">LLM Model</small>
+                                                        <select name="model" id="model" class="form-select form-control">
+                                                            <option value="claude">Claude</option>
+                                                            <option value="gpt">GPT</option>
+                                                        </select>
+                                                    </div>
+
                                                     <div class="pricing-btn rounded-buttons text-center">
                                                         <button class="btn primary-btn rounded-full" type="submit">
                                                             Submit
@@ -100,6 +109,7 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Hasil</h3>
+                                <h5 class="year mt-3" id="model_answer">Model</h5>
                                 <h6 class="year mt-3">Saya cuma nampilin profilnya sama hasilnya ya,  hehe.</h6>
                             </div>
                             <div class="pricing-list">
@@ -213,9 +223,11 @@
             event.preventDefault(); // Prevent default form submission
 
             const formData = new FormData(this);
+            const model = formData.get('model')
 
             try {
 
+                let url = '/api/medium?model=' + model
                 const response = await fetch('/api/medium', {
                     method: 'POST',
                     body: formData,
@@ -235,6 +247,8 @@
                     userfollower.html(res.data.profile.follower)
                     userbio.html(res.data.profile.bio)
                     resultroast.html(res.data.content)
+
+                    $('#model_answer').html("Model: " + model.toUpperCase())
                 }
 
             } catch(e) {

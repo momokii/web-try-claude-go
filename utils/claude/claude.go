@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
+	"time"
 )
 
 type ClaudeAPI interface {
@@ -12,19 +14,81 @@ type ClaudeAPI interface {
 	ClaudeGetFirstContentDataResp(prompt []ClaudeMessageReq, maxToken int) (*ClaudeContentResp, error)
 }
 
-type claudeAPI struct {
-	apiKey                 string
+// Config holds the configuration for Claude API client
+type Config struct {
+	httpClient             *http.Client
 	claudeBaseUrl          string
 	claudeModel            string
 	claudeAnthropicVersion string
 }
 
-func New(apiKey string, claudeBaseUrl string, claudeModel string, claudeAnthropicVersion string) ClaudeAPI {
+// default configuration for Claude API client
+func DefaultConfig() *Config {
+	return &Config{
+		httpClient: &http.Client{
+			Timeout: 60 * time.Second,
+		},
+		// claude base url using the /messages endpoint default because this the only available endpoint on claude for now that can be user (text and vision)
+		claudeBaseUrl:          "https://api.anthropic.com/v1/messages",
+		claudeModel:            "claude-3-5-sonnet-20240620",
+		claudeAnthropicVersion: "2021-06-01",
+	}
+}
+
+// client implementation for Claude API interfaces
+type claudeAPI struct {
+	apiKey string
+	config *Config
+}
+
+// client options for configuring the Claude API client
+type ClientOption func(*Config)
+
+func New(apiKey string, opts ...ClientOption) (ClaudeAPI, error) {
+
+	if apiKey == "" {
+		return nil, errors.New("API Key is empty")
+	}
+
+	// create new Claude API instance from private struct
+	config := DefaultConfig()
+
+	// apply options
+	for _, opt := range opts {
+		opt(config)
+	}
+
 	return &claudeAPI{
-		apiKey:                 apiKey,
-		claudeBaseUrl:          claudeBaseUrl,
-		claudeModel:            claudeModel,
-		claudeAnthropicVersion: claudeAnthropicVersion,
+		apiKey: apiKey,
+		config: config,
+	}, nil
+}
+
+// custom options for configuring the Claude API client
+func WithHTTPClient(httpClient *http.Client) ClientOption {
+	return func(c *Config) {
+		c.httpClient = httpClient
+	}
+}
+
+// custom options for configuring the Claude API client
+func WithBaseUrl(baseUrl string) ClientOption {
+	return func(c *Config) {
+		c.claudeBaseUrl = baseUrl
+	}
+}
+
+// custom options for configuring the Claude API client
+func WithModel(model string) ClientOption {
+	return func(c *Config) {
+		c.claudeModel = model
+	}
+}
+
+// custom options for configuring the Claude API client
+func WithAnthropicVersion(version string) ClientOption {
+	return func(c *Config) {
+		c.claudeAnthropicVersion = version
 	}
 }
 
@@ -56,37 +120,53 @@ func (c *claudeAPI) ClaudeSendMessage(content []ClaudeMessageReq, maxToken int) 
 	}
 
 	reqBody := ClaudeReqBody{
-		Model:     c.claudeModel,
+		Model:     c.config.claudeModel,
 		MaxTokens: maxToken,
 		Message:   content,
 	}
 
 	reqBodyJson, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("request failed: " + err.Error())
 	}
 
 	// send request to Claude
-	req, err := http.NewRequest("POST", c.claudeBaseUrl, bytes.NewBuffer(reqBodyJson))
+	req, err := http.NewRequest(http.MethodPost, c.config.claudeBaseUrl, bytes.NewBuffer(reqBodyJson))
 	if err != nil {
-		return nil, err
+		return nil, errors.New("request failed: " + err.Error())
 	}
 
 	req.Header.Set("x-api-key", apiKey)
-	req.Header.Set("anthropic-version", c.claudeAnthropicVersion)
+	req.Header.Set("anthropic-version", c.config.claudeAnthropicVersion)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := c.config.httpClient
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("request failed: " + err.Error())
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if resp.StatusCode != http.StatusOK {
+			io.ReadAll(resp.Body)
+		}
+		resp.Body.Close()
+	}()
+
+	// error handling status
+	if resp.StatusCode != http.StatusOK {
+		var errClaude ClaudeRespError
+		if err := json.NewDecoder(resp.Body).Decode(&errClaude); err != nil {
+			return nil, errors.New("request failed with status code: " + resp.Status)
+		}
+
+		return nil, errors.New("Claude API response error: " + resp.Status + " with message: " + errClaude.Error.Message + " type: " + errClaude.Error.Type)
+	}
 
 	// decode response from Claude to map
 	var result ClaudeResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, err
+		return nil, errors.New("request failed: " + err.Error())
 	}
 
 	return &result, nil
@@ -109,8 +189,8 @@ func (c *claudeAPI) ClaudeGetFirstContentDataResp(prompt []ClaudeMessageReq, max
 	// with response example above
 	// get content key from map and type assert as array of interface
 	// get first element from array of interface and type assert as map
-	msg := claudeResp.Content[0]
+	content := claudeResp.Content[0]
 
 	// return the message content as interface
-	return &msg, nil
+	return &content, nil
 }

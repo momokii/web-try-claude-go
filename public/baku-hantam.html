@@ -11,7 +11,7 @@
                         <div class="section-title text-center">
                             <h2 class="mb-3 fw-bold">Baku Hantam Tekbro</h2>
                             <p class="text-lg">
-                                Mencoba implementasi prompting analisis pada Claude Sonnet-3.5 API dengan melakukan crawling data dari website milik mas <a href="https://x.com/zakiego" target="_blank">@zakiego</a> pada website <a href="https://bakuhantam.dev" target="_blank">Baku Hantam</a>. Dapat memilih topik yang ada pada website tersebut, dan lihat hasilnya.
+                                Mencoba implementasi prompting analisis pada Claude Sonnet-3.5 API &  GPT-4o dengan melakukan crawling data dari website milik mas <a href="https://x.com/zakiego" target="_blank">@zakiego</a> pada website <a href="https://bakuhantam.dev" target="_blank">Baku Hantam</a>. Dapat memilih topik yang ada pada website tersebut, dan lihat hasilnya.
                             </p>
                         </div>
                     </div>
@@ -28,9 +28,22 @@
                                         <div class="col-lg-12 justify-content-center">
                                             <div class="form-input mt-4">
                                                 <form action="post" id="postBakuHantam" method="post">
-                                                    <select class="form-select" aria-label="Default select example" id="dynamicSelect" name="topic">
-                                                        <option selected disabled>Pilih opsi</option>
-                                                    </select>
+
+                                                    <div class="mb-3">
+                                                        <small for="topic" class="form-text text-muted text-left fw-bold">Topic</small>
+                                                        <select class="form-select" aria-label="Default select example" id="dynamicSelect" name="topic">
+                                                            <option selected disabled>Pilih opsi</option>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="mb-3">
+                                                        <small for="model" class="form-text text-muted text-left fw-bold">LLM Model</small>
+                                                        <select name="model" id="model" class="form-select mb-3">
+                                                            <option value="claude">Claude</option>
+                                                            <option value="gpt">GPT</option>
+                                                        </select>
+                                                    </div>
+                                                    
                                                     <div class="pricing-btn rounded-buttons text-center">
                                                         <button class="btn primary-btn rounded-full" type="submit">
                                                             Pilih
@@ -96,6 +109,7 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Hasil</h3>
+                                <h5 class="year mt-3" id="model_answer">Model</h5>
                                 <h6 class="year mt-3">Saya cuma nampilin hasilnya ya,  hehe.</h6>
                             </div>
                             <div class="pricing-list">
@@ -244,9 +258,11 @@
 
             const formData = new FormData(this)
             formData.append('topicName', selectElement[0].options[selectElement[0].selectedIndex].text)
+            const model = $('#model').val()
 
             try {
-                const response = await fetch('/api/baku-hantam', {
+                const url = '/api/baku-hantam?model=' + model
+                const response = await fetch(url, {
                     method: 'POST',
                     body: formData
                 })
@@ -263,6 +279,8 @@
                     topicNameRes.html(res.data.topic_name)
                     linkCoordinat.attr('href', res.data.topic)
                     resultRes.html(res.data.content)
+
+                    $('#model_answer').html('Model: ' + model.toUpperCase())
                 }
 
             } catch (e) {

@@ -1,4 +1,20 @@
-# Web Based Scrapping Project and Analysis using Claude Sonnet 3.5 API
+# Web Based Scrapping Project and LLM Integration using Claude & GPT
+
+This repository contains a collection of mini-projects that showcase implementation of web scraping  combined with the integration of Large Language Models (LLMs) like Claude and GPT. The purpose of this project is to demonstrate how data from various sources can be scraped and further analyzed or transformed using AI models.
+
+## Overview
+
+The project includes several mini-applications:
+
+### Mini Projects
+1. **Medium Account Roast**  
+   A tool that scrapes data from a Medium account and generates a humorous "roast" or analysis of the content using LLMs.
+   
+2. **Website Roast/Analysis**  
+   This mini-project scrapes a website to get some topic inside it and with topic user select, do a roast or detailed analysis using Claude or GPT, offering insights or Entertaining Review of the topic.
+
+3. **Butterfly Effect Stories Generator**  
+   A story generator that starts with a random title based on user input. The user then makes decisions throughout the story, influencing the final outcome like a "butterfly effect."
 
 ## Getting Started
 

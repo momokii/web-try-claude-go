@@ -76,7 +76,7 @@ func (h *BakuHantamController) PostBakuHantam(c *fiber.Ctx) error {
 			},
 		}
 
-		claudeResp, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 256*10)
+		claudeResp, err := h.claude.ClaudeGetFirstContentDataResp(&prompt_input, 256*10, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
@@ -91,7 +91,7 @@ func (h *BakuHantamController) PostBakuHantam(c *fiber.Ctx) error {
 			},
 		}
 
-		gptResp, err := h.openai.OpenAIGetFirstContentDataResp(prompt_input, false, nil)
+		gptResp, err := h.openai.OpenAIGetFirstContentDataResp(&prompt_input, false, nil, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}

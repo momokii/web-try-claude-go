@@ -1,27 +1,41 @@
 package claude
 
-// create document for claude dto
-
+// message bidy content structure
 type ClaudeMessageReq struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    string      `json:"role"`
+	Content interface{} `json:"content"` // if need using vision can send image to content
+	// https://docs.anthropic.com/en/api/messages
 }
 
+// content structure for vision
+type ClaudeVisionSource struct {
+	Type      string `json:"type"`
+	MediaType string `json:"media_type"`
+	Data      string `json:"data"`
+}
+
+// Struct untuk data tipe image dan text
+type ClaudeVisionContentBase struct {
+	Type   string              `json:"type"`
+	Source *ClaudeVisionSource `json:"source,omitempty"` // Using pointer to allow nil value
+	Text   *string             `json:"text,omitempty"`   // using pointer to allow nil value
+}
+
+// claude full request body structure with all possible fields
 type ClaudeReqBody struct {
-	Model     string             `json:"model"`
-	MaxTokens int                `json:"max_tokens"`
-	Message   []ClaudeMessageReq `json:"messages"`
+	Model         string                   `json:"model"`      // required
+	MaxTokens     int                      `json:"max_tokens"` // required
+	Messages      []ClaudeMessageReq       `json:"messages"`   // required
+	Metadata      map[string]interface{}   `json:"metadata,omitempty"`
+	StopSequences []string                 `json:"stop_sequences,omitempty"`
+	Stream        bool                     `json:"stream,omitempty"`
+	System        string                   `json:"system,omitempty"`
+	Temperature   float64                  `json:"temperature,omitempty"` // default 1.0
+	ToolChoice    map[string]interface{}   `json:"tool_choice,omitempty"`
+	Tools         []map[string]interface{} `json:"tools,omitempty"`
 }
 
-type ClaudeContentVision struct {
-	Type   string `json:"type"`
-	Source struct {
-		Type      string `json:"type"`
-		MediaType string `json:"media_type"`
-		Data      string `json:"data"`
-	} `json:"source"`
-}
-
+// Claude 4xx error response structure
 type ClaudeRespError struct {
 	Type  string `json:"type"`
 	Error struct {
@@ -35,6 +49,7 @@ type ClaudeContentResp struct {
 	Text string `json:"text"`
 }
 
+// claude full response structure on chat completions
 type ClaudeResp struct {
 	ID           string              `json:"id"`
 	Type         string              `json:"type"`

@@ -64,7 +64,7 @@ func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 			},
 		}
 
-		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 10*512)
+		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(&prompt_input, 10*512, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
@@ -83,16 +83,19 @@ func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 		format_response := openai.OACreateResponseFormat(
 			"titles_choices",
 			map[string]interface{}{
-				"titles": map[string]interface{}{
-					"type": "array",
-					"items": map[string]interface{}{
-						"type": "object",
-						"properties": map[string]interface{}{
-							"title": map[string]string{
-								"type": "string",
-							},
-							"description": map[string]string{
-								"type": "string",
+				"type": "object",
+				"properties": map[string]interface{}{
+					"titles": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"title": map[string]string{
+									"type": "string",
+								},
+								"description": map[string]string{
+									"type": "string",
+								},
 							},
 						},
 					},
@@ -100,7 +103,7 @@ func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 			},
 		)
 
-		openairesp, err := h.openai.OpenAIGetFirstContentDataResp(prompt_gpt, true, format_response)
+		openairesp, err := h.openai.OpenAIGetFirstContentDataResp(&prompt_gpt, true, &format_response, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, "openai: "+err.Error())
 		}
@@ -154,7 +157,7 @@ func (h *StoriesController) CreateFirstStoriesPart(c *fiber.Ctx) error {
 			},
 		}
 
-		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 512*10)
+		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(&prompt_input, 512*10, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
@@ -172,19 +175,22 @@ func (h *StoriesController) CreateFirstStoriesPart(c *fiber.Ctx) error {
 		response_format := openai.OACreateResponseFormat(
 			"paragraph_choices",
 			map[string]interface{}{
-				"paragraph": map[string]string{
-					"type": "string",
-				},
-				"choices": map[string]interface{}{
-					"type": "array",
-					"items": map[string]string{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"paragraph": map[string]string{
 						"type": "string",
+					},
+					"choices": map[string]interface{}{
+						"type": "array",
+						"items": map[string]string{
+							"type": "string",
+						},
 					},
 				},
 			},
 		)
 
-		gptRes, err := h.openai.OpenAIGetFirstContentDataResp(prompt_input, true, response_format)
+		gptRes, err := h.openai.OpenAIGetFirstContentDataResp(&prompt_input, true, &response_format, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
@@ -286,7 +292,7 @@ func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 			},
 		}
 
-		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(prompt_input, 512*10)
+		claudeRes, err := h.claude.ClaudeGetFirstContentDataResp(&prompt_input, 512*10, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
@@ -304,19 +310,22 @@ func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 		response_format := openai.OACreateResponseFormat(
 			"paragraph_choices",
 			map[string]interface{}{
-				"paragraph": map[string]string{
-					"type": "string",
-				},
-				"choices": map[string]interface{}{
-					"type": "array",
-					"items": map[string]string{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"paragraph": map[string]string{
 						"type": "string",
+					},
+					"choices": map[string]interface{}{
+						"type": "array",
+						"items": map[string]string{
+							"type": "string",
+						},
 					},
 				},
 			},
 		)
 
-		gptRes, err := h.openai.OpenAIGetFirstContentDataResp(prompt_input, true, response_format)
+		gptRes, err := h.openai.OpenAIGetFirstContentDataResp(&prompt_input, true, &response_format, false, nil)
 		if err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}

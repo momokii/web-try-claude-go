@@ -23,6 +23,16 @@ type OAMessageReq struct {
 	Content interface{} `json:"content"`
 }
 
+type OAContentVisionImageUrl struct {
+	Url string `json:"url"`
+}
+
+type OAContentVisionBaseReq struct {
+	Type     string                   `json:"type"`
+	Text     *string                  `json:"text,omitempty"`
+	ImageUrl *OAContentVisionImageUrl `json:"image_url,omitempty"`
+}
+
 // response OpenAI structure
 type OAChatCompletionResp struct {
 	ID                string     `json:"id"`

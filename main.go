@@ -50,6 +50,7 @@ func main() {
 	mediumController := controllers.NewMediumController(claude, openai)
 	bakuHantamController := controllers.NewBakuHantamController(claude, openai)
 	storiesController := controllers.NewStoriesController(claude, openai)
+	creativecontentController := controllers.NewCreativeContentController(openai)
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -103,6 +104,11 @@ func main() {
 	app.Post("/api/stories/titles", storiesController.CreateStoriesTitle)
 	app.Post("/api/stories/paragraphs", storiesController.CreateFirstStoriesPart)
 	app.Post("/api/stories/paragraphs/:data", storiesController.CreateStoriesParagraph)
+
+	app.Get("/creative-content", creativecontentController.ViewCreativeContent)
+	app.Post("/api/creative-content/images/analysis", creativecontentController.GetImageAnalysis)
+	app.Post("/api/creative-content/images/generations", creativecontentController.CreateImageDallE)
+	app.Post("/api/creative-content/audio/speech", creativecontentController.CreateTTS)
 
 	app.Listen(":3000")
 }

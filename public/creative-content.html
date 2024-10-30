@@ -1,0 +1,418 @@
+{{ template "base/base-header" . }}
+
+<body>
+
+    <div class="container">
+        <!--====== PRICING STYLE ONE START ======-->
+        <section class="pricing-area pricing-one">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-xxl-6 col-xl-7 col-lg-8">
+                        <div class="section-title text-center">
+                            <h2 class="mb-3 fw-bold">Image-to-</h2>
+                            <p class="text-lg">
+                                Buat sebuah creative content dengan menggunakan sebuah gambar menarik yang kamu upload pada data dibawah, dengan bantuan GPT-4o, Dall-E 3, dan TTS-1 anda bisa membuat content kreatif serta menarik berdasarkan gambar yang anda upload yang akan coba dianalisis, kemudian re create illustrasi terbaru, pilih rekomendasi konten yang diberikan, dan kami berikan versi audio dari konten dipilih tersebut. Mulai dengan upload gambar menarik anda dan kembangkan sebuah content berdasarkan hasil analisis EyAy yang digunakan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-md-10 col-sm-10" id="cardInput">
+                        <div class="pricing-style-one d-flex flex-column h-100">
+                            <div class="pricing-header text-center">
+                                <h3 class="sub-title">Image-to-</h3>
+                                <h6 id="subtitle_card" class="year mt-3 text-justify">Upload gambarmu dan mari coba explore berbagai kemungkinan yang ada</h6>
+
+                                <div class="form-style form-style-five ">
+                                    <div class="row">
+                                        <div class="col-lg-12 justify-content-center">
+                                            <div class="form-input mt-4" id="input_theme">
+
+                                                <div class="mb-3">
+                                                    <small for="image-upload" class="form-text text-muted text-left fw-bold">Upload Image</small>
+                                                    <input type="file" name="image-upload" id="image-upload" class="form-control mb-3" accept="image/*" required onchange="previewImage(event)">
+                                                    <div id="preview-container" class="mt-3" style="text-align: center;">
+                                                        <img id="preview" src="#" alt="Image Preview" style="display: none; max-width: 85%; height: auto; margin: auto;">
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3" id="language-card">
+                                                    <small for="language" class="form-text text-muted text-left fw-bold">Language</small>
+                                                    <select name="language" id="language" class="form-select mb-3">
+                                                        <option value="indonesia">Indonesia</option>
+                                                        <option value="english">English</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="pricing-btn rounded-buttons text-center">
+                                                    <button id="submit_image" class="btn primary-btn rounded-full">
+                                                        Submit
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div id="image-analysis" style="display: none;" class="mt-4">
+                                                    <h4 class="mb-3">Image Analysis</h4>
+                                                    <div id="analysis-result" class="d-flex flex-column align-items-center p-3 border rounded shadow-sm bg-light">
+        
+                                                        <!-- Description Section -->
+                                                        <section id="description" class="mb-4 text-justify">
+                                                            <h5 class="text-primary text-center">Description</h5>
+                                                            <p class="text-muted" id="description-text">No description available.</p>
+                                                        </section>
+                                                        
+                                                        <!-- Emotion Detection Section -->
+                                                        <section id="emotion-detection" class="mb-4 text-justify">
+                                                            <h5 class="text-primary text-center">Emotion Detection</h5>
+                                                            <p class="text-muted" id="emotion-result">No emotion detected.</p>
+                                                        </section>
+                                                        
+                                                        <!-- Object Detection Section -->
+                                                        <section id="object-detection" class="mb-4">
+                                                            <h5 class="text-primary">Object Detection</h5>
+                                                            <ul id="object-list" class="list-unstyled text-muted">
+                                                                <li>No objects detected.</li>
+                                                            </ul>
+                                                        </section>
+                                                        
+                                                        <!-- Element Visual Detection Section -->
+                                                        <section id="element-visual-detection">
+                                                            <h5 class="text-primary">Element Visual Detection</h5>
+                                                            <ul id="element-list" class="list-unstyled text-muted">
+                                                                <li>No visual elements detected.</li>
+                                                            </ul>
+                                                        </section>
+                                                        
+                                                    </div>
+                                                </div>
+
+
+
+                                                <div id="creative-content-recommendation" style="display: none;" class="mt-4">
+                                                    <!-- recommendation creative content -->
+                                                    <div id="content-recommendation">
+                                                        <h5>Recommendation Creative Content: </h5>
+                                                        <div id="content-recommendation-list"></div>
+                                                    </div>
+
+                                                    <div id="content-choose" style="display: none;">
+                                                        <h3 class="text-center">Selected Content</h3>
+                                                    
+                                                        <!-- after choosing the recommendation list data -->
+                                                        <div id="content-choose" class="d-flex flex-column align-items-center p-3 border rounded shadow-sm bg-light" style="display: none;">
+                                                            <section class="mb-4 text-justify" id="content-choose-section">
+                                                                <h5 id="content-choose-type" class="text-center">Type Content</h5>
+                                                    
+                                                                <div id="preview-container-result" class="mt-3" style="text-align: center;">
+                                                                    <!-- Link untuk membuka atau mengunduh gambar ukuran penuh -->
+                                                                    <a id="fullsize-link" href="#" target="_blank" download>
+                                                                        <img id="result-image" src="#" alt="Image Result" style="display: none; max-width: 85%; height: auto; margin: 20px auto;">
+                                                                    </a>
+                                                                    
+                                                                    <!-- Audio -->
+                                                                    <audio id="result-audio" controls style="display: none; margin-top: 20px;">
+                                                                        Your browser does not support the audio element.
+                                                                    </audio>
+                                                                </div>
+                                                    
+                                                                <pre id="content-choose-data" style="font-family: inherit; font-size: 1rem; color: #6c757d; white-space: pre-wrap; background: none; border: none; padding: 0; margin: 0;">
+                                                                    Content Data
+                                                                </pre>
+                                                            </section>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    
+
+                                                    <!-- final story all -->
+                                                    <div id="process-done" style="display: none;">
+                                                        <div class="pricing-btn rounded-buttons text-center">
+                                                            <a class="btn primary-btn rounded-full" href="/creative-content">
+                                                                Ulangi
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div class="bottom-shape">
+                                <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 112.35">
+                                    <defs>
+                                        <style>
+                                            .color-1 {
+                                                fill: #2bdbdc;
+                                                isolation: isolate;
+                                            }
+
+                                            .cls-1 {
+                                                opacity: 0.1;
+                                            }
+
+                                            .cls-2 {
+                                                opacity: 0.2;
+                                            }
+
+                                            .cls-3 {
+                                                opacity: 0.4;
+                                            }
+
+                                            .cls-4 {
+                                                opacity: 0.6;
+                                            }
+                                        </style>
+                                    </defs>
+                                    <title>bottom-part1</title>
+                                    <g>
+                                        <g data-name="Group 747">
+                                            <path data-name="Path 294" class="cls-1 color-1"
+                                                d="M0,24.21c120-55.74,214.32,2.57,267,0S349.18,7.4,349.18,7.4V82.35H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 297" class="cls-2 color-1"
+                                                d="M350,34.21c-120-55.74-214.32,2.57-267,0S.82,17.4.82,17.4V92.35H350Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 296" class="cls-3 color-1"
+                                                d="M0,44.21c120-55.74,214.32,2.57,267,0S349.18,27.4,349.18,27.4v74.95H0Z"
+                                                transform="translate(0 0)" />
+                                            <path data-name="Path 295" class="cls-4 color-1"
+                                                d="M349.17,54.21c-120-55.74-214.32,2.57-267,0S0,37.4,0,37.4v74.95H349.17Z"
+                                                transform="translate(0 0)" />
+                                        </g>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+                        <!-- single pricing -->
+                    </div>
+
+                </div>
+                <!-- row -->
+            </div>
+            <!-- container -->
+        </section>
+        <!--====== PRICING STYLE ONE ENDS ======-->
+
+        <div class="row justify-content-center">
+            <div>
+                <div class="pricing-btn rounded-buttons text-center mb-5">
+                    <a class="btn btn-danger rounded-full" href="/">
+                        Kembali
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ template "base/footer" . }}
+
+    {{ template "components/loading" .}}
+
+    {{ template "components/modal-infor" .}}
+</body>
+
+<script>
+    const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'));
+
+    let IMAGE_UPLOADED
+    let IMAGE_GENERATION_PROMPT
+    let LANGUAGE_CHOOSED
+
+    function previewImage(event) {
+        const preview = $('#preview')
+        const file = event.target.files[0]
+
+        IMAGE_UPLOADED = file // save image for this session 
+
+        if (file) {
+            const reader = new FileReader()
+            reader.onload = function() {
+                preview.attr('src', reader.result)
+                preview.css('display', 'block')
+            }
+            reader.readAsDataURL(file)
+        } else {
+            preview.src = "#"
+            preview.css('display', 'none')
+        }
+    }
+
+    async function ChooseContent(content) {
+            const type = content.content_type 
+            const content_data = content.content
+
+            // add data to IMAGE GENERATION PROMPT
+            IMAGE_GENERATION_PROMPT += "\n\nKemudian konten yang menggambarkan gambar dalam sebuah: " + type + "\ndata: \n" + content_data
+
+            $('#loadingModal').css('display', 'flex')
+
+            const url_dalle = "/api/creative-content/images/generations"
+            const url_tts = "/api/creative-content/audio/speech"
+
+            try {
+                // ----- GENERATE IMAGE BASED ON PROMPT
+                const response_image = await fetch(url_dalle, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        prompt: IMAGE_GENERATION_PROMPT
+                    })
+                })
+                const res_img = await response_image.json()
+
+                // ----- GENERATE TTS BASED ON Choosen Content Data 
+                const response_tts = await fetch(url_tts, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        prompt: content_data,
+                        language: LANGUAGE_CHOOSED,
+                    })
+                })
+                const res_tts = await response_tts.json()
+
+                // convert data from base64
+                let b64_audio = "data:audio/mp3;base64," + res_tts.data.b64_json
+                let b64_image = "data:image/png;base64," + res_img.data.image_data.data[0].b64_json
+                // let b64_image = "data:image/png;base64," + BASE64_IMAGE // FOR TESTING (DATA ON FOOTER HTML)
+
+                $('#content-recommendation').css('display', 'none')
+                $('#content-choose').css('display', 'block')
+
+                $('#content-choose-type').html(type.toUpperCase())
+                $('#content-choose-data').html(content_data)
+
+                $('#process-done').css('display', 'block')
+
+                // show image
+                $('#result-image').attr('src', b64_image).css('display', 'block')
+                // Tautkan `href` dan `download` ke gambar ukuran penuh untuk opsi unduh atau lihat ukuran penuh
+                $('#fullsize-link').attr('href', b64_image).attr('download', 'image.png')
+
+                // sho audio
+                $('#result-audio').attr('src', b64_audio).show()
+
+            } catch(e) {
+                $('#modalMessage').html(e.message)
+                modalInfo.show()
+            } finally {
+                $('#loadingModal').css('display', 'none')
+            }
+        }
+
+    $(document).ready(async function () {
+
+        // first submit image 
+        $('#submit_image').on('click', async function () {
+
+            $('#loadingModal').css('display', 'flex')
+
+            if(!IMAGE_UPLOADED) {
+                $('#modalMessage').html('Please upload an image first')
+                modalInfo.show()
+                $('#loadingModal').css('display', 'none')
+                return
+            }
+
+            const formData = new FormData()
+            formData.append('image', IMAGE_UPLOADED)
+            formData.append('language', $('#language').val())
+            LANGUAGE_CHOOSED = $('#language').val()
+
+            const url = "/api/creative-content/images/analysis"
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                const res = await response.json()
+
+                if (res.error) {
+                    throw new Error(res.message)
+                }
+
+                
+                // response have mainly 2 structure data
+                const image_analysis = res.data.analysis 
+                const creative_content_recommendation = res.data.content_recommendation
+                if (!image_analysis.have_emotion) {
+                    throw new Error("Your image is not interested to make some creative content from it, try another image")
+                }
+
+                IMAGE_GENERATION_PROMPT = image_analysis["image_description"]
+                IMAGE_GENERATION_PROMPT += "\n\nObjek utama yang terdapat pada gambar: " + image_analysis["object_detection"].join(", ")
+                IMAGE_GENERATION_PROMPT += "\n\nElemen visual yang terdapat pada gambar yang mendukung: " + image_analysis["visual_element"].join(", ")
+
+                // -- remove input 
+                $('#image-upload').css('display', 'none')
+                $('#language-card').css('display', 'none')
+                $('#submit_image').css('display', 'none')
+
+
+                // -------- PROCESS IMAGE ANALYSIS RESULT
+                $('#image-analysis').css('display', 'block')
+
+                // isi data dengan hasil analisis
+                $('#description-text').html(image_analysis.image_description)
+                $('#emotion-result').html(image_analysis.emotion_detection)
+                if (image_analysis.object_detection.length > 0) {
+                    $('#object-list').html('') // make list empty first
+                    // add another list
+                    image_analysis.object_detection.forEach(object => {
+                        $('#object-list').append(`<li>${object}</li>`)
+                    })
+                }
+                if(image_analysis.visual_element.length > 0) {
+                    $('#element-list').html('') // make list empty first
+                    // add another list
+                    image_analysis.visual_element.forEach(element => {
+                        $('#element-list').append(`<li>${element}</li>`)
+                    })
+                }
+
+                // -------- PROCESS CREATIVE CONTENT RECOMMENDATION 
+                // get creative content list
+                const creative_content_data = creative_content_recommendation.creative_content
+
+                // loop through creative content data
+                if(creative_content_data.length > 0) {
+                    $('#creative-content-recommendation').css('display', 'block')
+
+                    const list_content = $('#content-recommendation-list').html('') // make list empty first
+
+                    creative_content_data.forEach(data => {
+
+
+                        const button = $('<button></button>')
+                        button.text(data.content_type)
+                        button.addClass('btn btn-primary m-2')
+                        button.on('click', async function() {
+                            ChooseContent(data)
+                        })
+
+                        list_content.append(button)
+                    })
+                }
+
+            } catch(e) {
+                $('#modalMessage').html(e.message)
+                modalInfo.show()
+            } finally {
+                $('#loadingModal').css('display', 'none')
+            }
+        })
+
+    })
+</script>
+
+</html>

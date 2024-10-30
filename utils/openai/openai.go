@@ -2,6 +2,7 @@ package openai
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -9,9 +10,18 @@ import (
 	"time"
 )
 
+const (
+	OAUrlBase                  = "https://api.openai.com/v1"
+	OAUrlTextCompletions       = OAUrlBase + "/chat/completions"
+	OAUrlImageGenerationsDallE = OAUrlBase + "/images/generations"
+	OAUrlTextToSpeech          = OAUrlBase + "/audio/speech"
+)
+
 type OpenAI interface {
 	OpenAISendMessage(content *[]OAMessageReq, with_format_response bool, format_response *map[string]interface{}, with_custom_reqbody bool, req_body_custom *OAReqBodyMessageCompletion) (*OAChatCompletionResp, error)
 	OpenAIGetFirstContentDataResp(content *[]OAMessageReq, with_format_response bool, format_response *map[string]interface{}, with_custom_reqbody bool, req_body_custom *OAReqBodyMessageCompletion) (*OAMessage, error)
+	OpenAICreateImageDallE(req_body *OAReqImageGeneratorDallE) (*OAImageGeneratorDallEResp, error)
+	OpenAITextToSpeech(req_body *OAReqTextToSpeech) (*OATextToSpeechResp, error)
 }
 
 // Config holds the configuration for OpenAI API client
@@ -28,7 +38,7 @@ func DefaultConfig() *Config {
 			Timeout: 60 * time.Second,
 		},
 		// user base url for chat completions endpoint with using gpt-4o-mini model
-		openAIBaseUrl: "https://api.openai.com/v1/chat/completions",
+		openAIBaseUrl: OAUrlTextCompletions,
 		openAIModel:   "gpt-4o-mini",
 	}
 }
@@ -482,4 +492,281 @@ func (c *openaiAPI) OpenAIGetFirstContentDataResp(content *[]OAMessageReq, with_
 	data := resp.Choices[0].Message
 
 	return &data, nil
+}
+
+// OpenAICreateImageDallE generates images based on a text prompt using either the DALL-E 2 or DALL-E 3 model.
+//
+// This method constructs an HTTP request to OpenAI's image generation API, validates input requirements for each model,
+// and includes optional parameters for fine-tuning image quality, response format, style, size, and number of generated images.
+//
+// Parameters:
+//
+//   - req_body (*OAReqImageGeneratorDallE): A pointer to a struct containing image generation request parameters.
+//
+//     Fields in OAReqImageGeneratorDallE struct:
+//
+//   - Prompt (string): A descriptive prompt that the DALL-E model will use to generate images. This field is required.
+//
+//   - Model (string): Specifies the DALL-E model version, either "dall-e-2" or "dall-e-3". This is required.
+//
+//   - N (*int): Optional. The number of images to generate, which can range between 1 and 10. Defaults to 1 if omitted.
+//
+//   - Quality (*string): Optional. Available only for the DALL-E 3 model, it can be set to "standard" (default) or "hd" for high definition.
+//
+//   - ResponseFormat (*string): Optional. Specifies the format of the generated image response, either "url" (default) or "b64_json" for a base64-encoded image.
+//
+//   - Size (*string): Optional. The image size, dependent on the model:
+//
+//   - DALL-E 2 supports "256x256", "512x512", and "1024x1024".
+//
+//   - DALL-E 3 supports "1024x1024", "1792x1024", and "1024x1792".
+//
+//   - Style (*string): Optional. Available only for the DALL-E 3 model. Choices are "vivid" (default) or "natural" for a more realistic style.
+//
+//   - User (*string): Optional. A unique identifier for the end user to monitor and detect abuse, helping OpenAI with usage tracking.
+//
+// Returns:
+//   - (*OAImageGeneratorDallEResp, error): On success, returns a pointer to an `OAImageGeneratorDallEResp` struct containing the
+//     generated image details. Returns an error if any validation fails or if the request is unsuccessful.
+//
+// Example usage:
+//
+//	reqBody := &OAReqImageGeneratorDallE{
+//	    Prompt: "A futuristic cityscape at sunset",
+//	    Model: "dall-e-3",
+//	    N: ptr(3),
+//	    Quality: ptr("hd"),
+//	    Style: ptr("vivid"),
+//	    Size: ptr("1024x1024"),
+//	    ResponseFormat: ptr("url"),
+//	}
+//
+//	imageResp, err := apiClient.OpenAICreateImageDallE(reqBody)
+//	if err != nil {
+//	    log.Fatalf("Image generation failed: %v", err)
+//	}
+//
+// Function Logic:
+//  1. **Model Validation**: Ensures `Model` is either "dall-e-2" or "dall-e-3". If not, returns an error.
+//  2. **N Validation**: If `N` is provided, checks if it falls between 1 and 10 (inclusive). If out of range, returns an error.
+//  3. **Quality Validation**:
+//     - If `Model` is "dall-e-2", `Quality` should be nil. Returns an error if a quality value is provided for this model.
+//     - If `Model` is "dall-e-3", `Quality` can be "standard" or "hd". If any other value is provided, returns an error.
+//  4. **Style Validation**:
+//     - Ensures `Style` is only available for "dall-e-3". For "dall-e-2", returns an error if `Style` is provided.
+//     - Valid values for `Style` are "vivid" or "natural"; any other value results in an error.
+//  5. **ResponseFormat Validation**:
+//     - If `ResponseFormat` is specified, it must be either "url" or "b64_json". Returns an error for other values.
+//  6. **API Key Check**: Confirms that the API key is set; returns an error if it's empty.
+//  7. **JSON Marshalling**: Serializes `req_body` to JSON format for the request body.
+//  8. **Request Creation and Headers**: Sets up an HTTP POST request with necessary headers (`Content-Type` and `Authorization`).
+//  9. **Response Handling**:
+//     - If the HTTP response status is not 200 OK, reads and closes the response body, then returns an error.
+//     - On successful response, decodes JSON data into `OAImageGeneratorDallEResp` struct and returns it.
+//
+// Considerations:
+//   - The function relies on an HTTP client specified in the API client’s configuration (c.config.httpClient).
+//   - In the event of a non-200 HTTP status, the function reads the body to allow graceful closing of the connection.
+//   - OpenAI API may apply rate limiting, so ensure retry or error handling mechanisms are in place for high-frequency requests.
+//
+// References:
+//   - OpenAI DALL E Image Generation API: https://platform.openai.com/docs/api-reference/images/create
+func (c *openaiAPI) OpenAICreateImageDallE(req_body *OAReqImageGeneratorDallE) (*OAImageGeneratorDallEResp, error) {
+
+	// ----------- input checker request
+	if req_body.Model == "" || (req_body.Model != "dall-e-2" && req_body.Model != "dall-e-3") {
+		return nil, errors.New("Model must be dall-e-2 or dall-e-3")
+	}
+
+	if req_body.N != nil && (*req_body.N < 1 || *req_body.N > 10) {
+		return nil, errors.New("N must be between 1 and 10")
+	}
+
+	if req_body.Model != "dall-e-3" && req_body.Quality != nil {
+		return nil, errors.New("Quality is only supported for dall-e-3 model")
+	}
+
+	if req_body.Quality != nil && (*req_body.Quality != "standard" && *req_body.Quality != "hd") {
+		return nil, errors.New("Quality must be standard or hd")
+	}
+
+	if req_body.Model != "dall-e-3" && req_body.Style != nil {
+		return nil, errors.New("Style is only supported for dall-e-3 model")
+	}
+
+	if req_body.Style != nil && (*req_body.Style != "vivid" && *req_body.Style != "natural") {
+		return nil, errors.New("Style must be vivid or natural")
+	}
+
+	if req_body.ResponseFormat != nil && (*req_body.ResponseFormat != "url" && *req_body.ResponseFormat != "b64_json") {
+		return nil, errors.New("ResponseFormat must be url or b64_json")
+	}
+
+	apiKey := c.apiKey
+	if apiKey == "" {
+		return nil, errors.New("API Key is empty")
+	}
+
+	reqBodyJson, err := json.Marshal(req_body)
+	if err != nil {
+		return nil, errors.New("Failed to marshal request body")
+	}
+
+	// create and send request
+	req, err := http.NewRequest(http.MethodPost, OAUrlImageGenerationsDallE, bytes.NewBuffer(reqBodyJson))
+	if err != nil {
+		return nil, errors.New("Failed to create request")
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := c.config.httpClient
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, errors.New("Failed to send request: " + err.Error())
+	}
+	defer func() {
+		if resp.StatusCode != http.StatusOK {
+			io.ReadAll(resp.Body)
+		}
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("Failed to send request: " + resp.Status)
+	}
+
+	var respDataDallE OAImageGeneratorDallEResp
+	if err := json.NewDecoder(resp.Body).Decode(&respDataDallE); err != nil {
+		return nil, errors.New("Failed to decode response: " + err.Error())
+	}
+
+	return &respDataDallE, nil
+}
+
+// OpenAITextToSpeech converts a text input into a speech audio file using OpenAI's TTS models.
+// This function validates the input parameters, prepares the request, sends it to the OpenAI API,
+// and returns the audio response encoded in base64 format.
+//
+// Parameters:
+//   - req_body (*OAReqTextToSpeech): A pointer to the OAReqTextToSpeech struct containing the TTS parameters.
+//
+// Returns:
+//   - (*OATextToSpeechResp, error): On success, returns a pointer to an OATextToSpeechResp struct containing:
+//   - FormatAudio: The file extension for the audio format (e.g., ".mp3").
+//   - B64JSON: A base64-encoded string representing the audio file content.
+//     On failure, returns an error.
+//
+// Errors:
+//   - Returns an error if required fields are missing or invalid, including:
+//   - Invalid Model (must be "tts-1" or "tts-1-hd").
+//   - Missing Input text.
+//   - Invalid Voice option (allowed values: "alloy", "echo", "fable", "onyx", "nova", "shimmer").
+//   - Invalid ResponseFormat (allowed values: "mp3", "opus", "aac", "flac", "wav", "pcm").
+//   - Speed out of range (0.25 to 4.0).
+//   - Also returns an error if the API key is missing, or if any part of the HTTP request/response fails.
+//
+// Example Usage:
+//
+//	reqBody := OAReqTextToSpeech{
+//	    Model:          "tts-1",
+//	    Input:          "Hello, world!",
+//	    Voice:          "alloy",
+//	    ResponseFormat: "mp3",
+//	}
+//
+//	resp, err := openAI.OpenAITextToSpeech(&reqBody)
+//	if err != nil {
+//	    log.Fatalf("Text-to-Speech conversion failed: %v", err)
+//	}
+//
+//	fmt.Println("Audio Format:", resp.FormatAudio)
+//	fmt.Println("Base64 Encoded Audio:", resp.B64JSON)
+//
+// References:
+//   - TTS OpenAI: https://platform.openai.com/docs/api-reference/audio/createSpeech
+func (c *openaiAPI) OpenAITextToSpeech(req_body *OAReqTextToSpeech) (*OATextToSpeechResp, error) {
+
+	// ----------- input checker request
+	if req_body.Model == "" || (req_body.Model != "tts-1" && req_body.Model != "tts-1-hd") {
+		return nil, errors.New("Model must be gpt-3 or davinci")
+	}
+
+	if req_body.Input == "" {
+		return nil, errors.New("Input text must be provided")
+	}
+
+	if req_body.Voice != "" && (req_body.Voice != "alloy" && req_body.Voice != "echo" && req_body.Voice != "fable" && req_body.Voice != "onyx" && req_body.Voice != "nova" && req_body.Voice != "shimer") {
+		return nil, errors.New("Voice must be en or en-GB")
+	}
+
+	if req_body.ResponseFormat != "" && (req_body.ResponseFormat == "mp3" && req_body.ResponseFormat == "opus" && req_body.ResponseFormat == "aac" && req_body.ResponseFormat == "flac" && req_body.ResponseFormat == "wav" && req_body.ResponseFormat == "pcm") {
+		return nil, errors.New("ResponseFormat must be mp3, opus, aac, flac, wav, or pcm")
+	}
+
+	if req_body.Speed != nil && (*req_body.Speed < 0.25 || *req_body.Speed > 4.0) {
+		return nil, errors.New("Speed must be between 0.25 and 4.0")
+	}
+
+	apiKey := c.apiKey
+	if apiKey == "" {
+		return nil, errors.New("API Key is empty")
+	}
+
+	// create json ver for req body
+	reqBodyJson, err := json.Marshal(req_body)
+	if err != nil {
+		return nil, errors.New("Failed to marshal request body")
+	}
+
+	// create req
+	req, err := http.NewRequest(http.MethodPost, OAUrlTextToSpeech, bytes.NewBuffer(reqBodyJson))
+	if err != nil {
+		return nil, errors.New("Failed to create request")
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := c.config.httpClient
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, errors.New("Failed to send request: " + err.Error())
+	}
+	defer func() {
+		if resp.StatusCode != http.StatusOK {
+			io.ReadAll(resp.Body)
+		}
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("Failed to send request: " + resp.Status)
+	}
+
+	// decode file mp3 response to encode base64
+	// because from the docs will be return file extension for audio, so for the response will be base64 encoded version of the audio we received
+	var b64audio, fileExt string
+	fileBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.New("Failed to read response body3: " + err.Error())
+	}
+
+	b64audio = base64.StdEncoding.EncodeToString(fileBytes)
+
+	if req_body.ResponseFormat == "" {
+		fileExt = ".mp3"
+	} else {
+		fileExt = "." + req_body.ResponseFormat
+	}
+
+	result := OATextToSpeechResp{
+		B64JSON:     b64audio,
+		FormatAudio: fileExt,
+	}
+
+	return &result, nil
 }

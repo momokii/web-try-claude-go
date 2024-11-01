@@ -243,11 +243,11 @@ func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 
 		Berikan format keputusan dalam array dengan ["keputusan 1", "keputusan -n"] tanpa "a. KEPUTUSAN" atau "1. KEPUTUSAN"
 
-		Return pada paragraf hanya berisi paragraf baru saja tanpa pilihan keputusan baru yang akan digunakan dan juga tanpa seperti '\n' dan sejenisnya. Jika diperlukan berikan input tersebut dalam tag HTML
+		Return pada data "paragraf" hanya berisi paragraf baru saja tanpa pilihan keputusan baru yang akan digunakan, keputusan baru diberikan pada data "choices".
 
 		`, inputUser.Title, inputUser.Description, inputUser.Theme, inputUser.Language, inputUser.Paragraph, inputUser.Choice)
 	} else {
-		prompt = fmt.Sprintf(`Berdasarkan cerita pendek bersambung yang sedang dibuat dengan data sebelumnya yang sudah didapat. Ini merupakan bagian akhir cerita.  Berdasarkan seluruh cerita dan pilihan terakhir yang diambil, buatlah paragraf penutup yang memberikan kesimpulan yang memuaskan.
+		prompt = fmt.Sprintf(`Berdasarkan cerita pendek bersambung yang sedang dibuat dengan data sebelumnya yang sudah didapat. Ini merupakan bagian akhir cerita. Berdasarkan seluruh cerita dan pilihan terakhir yang diambil, buatlah paragraf penutup yang memberikan kesimpulan yang memuaskan.
 
 		Judul: '%s'
 		Deskripsi: '%s'
@@ -262,7 +262,7 @@ func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 
 		Jika lebih dari 1 paragraf, jeda paragraf tandai dengan <br> tag
 
-		Return pada paragraf hanya berisi paragraf baru saja tanpa pilihan keputusan baru yang akan digunakan dan juga tanpa seperti '\n' dan sejenisnya. Jika diperlukan berikan input tersebut dalam tag HTML
+		Return pada paragraf hanya berisi paragraf baru saja tanpa pilihan keputusan baru yang akan digunakan.
 
 		`, inputUser.Title, inputUser.Description, inputUser.Theme, inputUser.Language, inputUser.Paragraph, inputUser.Choice)
 	}
@@ -279,7 +279,9 @@ func (h *StoriesController) CreateStoriesParagraph(c *fiber.Ctx) error {
 
 		} else {
 			prompt += `
-			tetap berikan jawaban "choices" namun berikan dengan nilai list kosong []
+			Berikan format jawaban hanya struktur JSON saja dengan struktur seperti di bawah dan pada paragraph hanya berisi ceritan penutup.
+
+			Tetap berikan jawaban "choices" namun berikan dengan nilai list kosong []
 
 			{"paragraph", "choices" : []}
 			`

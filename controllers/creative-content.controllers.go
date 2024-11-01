@@ -247,11 +247,6 @@ func (h *CreativeContentController) CreateTTS(c *fiber.Ctx) error {
 	}
 
 	var prompt string
-	if userInput.Language == "indonesia" {
-		// Reference
-		// https://community.openai.com/t/how-to-hint-the-language-used-for-the-text-to-speech-tts-in-gpts/590412/3
-		prompt = "(indonesia): \n" // ntah kenapa works dengan pre prompt bahasa terpilih wgwg
-	}
 
 	prompt += userInput.Prompt
 	ttsReqBody := openai.OAReqTextToSpeech{

@@ -4,6 +4,11 @@ import (
 	"net/http"
 	"os"
 	"scrapper-test/controllers"
+	"scrapper-test/database"
+	"scrapper-test/middlewares"
+	"scrapper-test/models"
+	"scrapper-test/repository/session"
+	"scrapper-test/repository/user"
 	"scrapper-test/utils/claude"
 	"scrapper-test/utils/openai"
 	"time"
@@ -46,11 +51,20 @@ func main() {
 		panic(err)
 	}
 
+	// db and session storage init
+	database.InitDB()
+	middlewares.InitSession()
+
+	// repo init
+	userRepo := user.NewUserRepo()
+	sessionRepo := session.NewSessionRepo()
+
 	// controller
 	mediumController := controllers.NewMediumController(claude, openai)
 	bakuHantamController := controllers.NewBakuHantamController(claude, openai)
 	storiesController := controllers.NewStoriesController(claude, openai)
 	creativecontentController := controllers.NewCreativeContentController(openai)
+	authHandler := controllers.NewAuthHandler(*userRepo, *sessionRepo)
 
 	app := fiber.New(fiber.Config{
 		Views: engine,
@@ -87,28 +101,35 @@ func main() {
 	app.Static("/public", "./public")
 
 	// route
-	app.Get("/", func(c *fiber.Ctx) error {
+	app.Get("/", middlewares.IsAuth, func(c *fiber.Ctx) error {
+		user := c.Locals("user").(models.UserSession)
+
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, LLM!",
+			"User":  user,
 		})
 	})
 
-	app.Get("/medium", mediumController.ViewMedium)
-	app.Post("/api/medium", mediumController.PostMedium)
+	// auth sso
+	app.Get("/auth/sso", middlewares.IsNotAuth, authHandler.SSOAuthLogin)
+	app.Post("/api/logout", middlewares.IsAuth, authHandler.Logout)
 
-	app.Get("/baku-hantam", bakuHantamController.ViewBakuHantam)
-	app.Post("/api/baku-hantam", bakuHantamController.PostBakuHantam)
-	app.Get("/api/baku-hantam/topics", bakuHantamController.GetBakuHantamTopic)
+	app.Get("/medium", middlewares.IsAuth, mediumController.ViewMedium)
+	app.Post("/api/medium", middlewares.IsAuth, mediumController.PostMedium)
 
-	app.Get("/stories", storiesController.ViewStories)
-	app.Post("/api/stories/titles", storiesController.CreateStoriesTitle)
-	app.Post("/api/stories/paragraphs", storiesController.CreateFirstStoriesPart)
-	app.Post("/api/stories/paragraphs/:data", storiesController.CreateStoriesParagraph)
+	app.Get("/baku-hantam", middlewares.IsAuth, bakuHantamController.ViewBakuHantam)
+	app.Post("/api/baku-hantam", middlewares.IsAuth, bakuHantamController.PostBakuHantam)
+	app.Get("/api/baku-hantam/topics", middlewares.IsAuth, bakuHantamController.GetBakuHantamTopic)
 
-	app.Get("/creative-content", creativecontentController.ViewCreativeContent)
-	app.Post("/api/creative-content/images/analysis", creativecontentController.GetImageAnalysis)
-	app.Post("/api/creative-content/images/generations", creativecontentController.CreateImageDallE)
-	app.Post("/api/creative-content/audio/speech", creativecontentController.CreateTTS)
+	app.Get("/stories", middlewares.IsAuth, storiesController.ViewStories)
+	app.Post("/api/stories/titles", middlewares.IsAuth, storiesController.CreateStoriesTitle)
+	app.Post("/api/stories/paragraphs", middlewares.IsAuth, storiesController.CreateFirstStoriesPart)
+	app.Post("/api/stories/paragraphs/:data", middlewares.IsAuth, storiesController.CreateStoriesParagraph)
 
-	app.Listen(":3000")
+	app.Get("/creative-content", middlewares.IsAuth, creativecontentController.ViewCreativeContent)
+	app.Post("/api/creative-content/images/analysis", middlewares.IsAuth, creativecontentController.GetImageAnalysis)
+	app.Post("/api/creative-content/images/generations", middlewares.IsAuth, creativecontentController.CreateImageDallE)
+	app.Post("/api/creative-content/audio/speech", middlewares.IsAuth, creativecontentController.CreateTTS)
+
+	app.Listen(":3002")
 }

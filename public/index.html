@@ -14,7 +14,14 @@
                                     <i class="fa fa-github"></i>
                                 </a>
                             </h2>
-                            <p class="text-lg">
+                            <!-- User info section (visible when logged in) -->
+                            <div id="user-info">
+                                <p class="text-md mb-2">
+                                    Welcome, <strong id="username" class="text-primary">{{ .User.Username }}</strong>! 👋
+                                </p>
+                                <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
+                            </div>
+                            <p class="text-lg mt-2">
                                 Mencoba beberapa implementasi penggunaan LLM (Large Language Model) dengan menggunakan
                                 Claude Sonnet 3.5 API dan GPT Series, beberapa sub project yang bisa dicoba ada di bawah. Thank You!
                             </p>
@@ -291,7 +298,49 @@
     {{ template "base/footer" .}}
     <!--====== FOOTER ONE PART ENDS ======-->
 
-    
+    {{ template "components/loading" .}}
+
+    {{ template "components/modal-infor" .}}
 </body>
+
+<script>
+    const modalInfo = new bootstrap.Modal(document.getElementById('infoModal'))
+
+    $(document).ready(async function () {
+
+        // logout button
+        $('#logoutBtn').click(async function() {
+            event.preventDefault()
+
+            $('#loadingModal').css('display', 'flex')
+
+            try {
+                const resp = await fetch("/api/logout", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                })
+                const response = await resp.json()
+
+                if (!response.error) {
+                    // setup for sso, just throw to dashboard page for now, because on backend will redirect to SSO dashboard page
+                    window.location.href = '/'
+
+                } else {
+                    $('#modalMessage').html('Failed to logout')
+                }
+
+            } catch(e) {
+                $('#modalMessage').html('Failed to logout')
+            } finally {
+                $('#loadingModal').css('display', 'none')
+            }
+            
+        });
+
+    })
+
+</script>
 
 </html>

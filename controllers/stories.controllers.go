@@ -3,24 +3,31 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"scrapper-test/database"
 	"scrapper-test/models"
 	"scrapper-test/utils"
 	"scrapper-test/utils/claude"
 	"scrapper-test/utils/openai"
 	"strings"
 
+	sso_models "github.com/momokii/go-sso-web/pkg/models"
+	sso_user "github.com/momokii/go-sso-web/pkg/repository/user"
+	sso_utils "github.com/momokii/go-sso-web/pkg/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 type StoriesController struct {
-	claude claude.ClaudeAPI
-	openai openai.OpenAI
+	claude   claude.ClaudeAPI
+	openai   openai.OpenAI
+	userRepo sso_user.UserRepo
 }
 
-func NewStoriesController(claude claude.ClaudeAPI, openai openai.OpenAI) *StoriesController {
+func NewStoriesController(claude claude.ClaudeAPI, openai openai.OpenAI, userRepo sso_user.UserRepo) *StoriesController {
 	return &StoriesController{
-		claude: claude,
-		openai: openai,
+		claude:   claude,
+		openai:   openai,
+		userRepo: userRepo,
 	}
 }
 
@@ -31,6 +38,9 @@ func (h *StoriesController) ViewStories(c *fiber.Ctx) error {
 }
 
 func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
+	// for now, just subtract user credit token from when the request is made whisch is when the user create the stories
+
+	user_session := c.Locals("user").(sso_models.UserSession)
 
 	var parsedResponse models.StoriesCreateTitleFormat
 	var jsonResp string
@@ -42,6 +52,31 @@ func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 	if err := c.BodyParser(inputUser); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err.Error())
 	}
+
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+	defer func() {
+		database.CommitOrRollback(tx, c, err)
+	}()
+
+	// check if user is exist
+	user, err := h.userRepo.FindByID(tx, user_session.Id)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if user.Id == 0 {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "user not found")
+	}
+
+	// check if user have enough credit token
+	if user.CreditToken < utils.FEATURE_STORY_GENERATOR_COST {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "Not enough credit token to use this feature")
+	}
+
+	// start process and using the FEATURE
 
 	prompt := fmt.Sprintf(`Berdasarkan tema ['%s'], hasilkan 4 judul cerita pendek yang menarik dan dalam bahasa ['%s'] juga cerita terkait cerita yang ada di ['%s']. Berikan deskripsi sederhana dengan 1-2 kalimat.
 	
@@ -113,6 +148,11 @@ func (h *StoriesController) CreateStoriesTitle(c *fiber.Ctx) error {
 
 	// decode response from openai
 	if err := json.NewDecoder(strings.NewReader(jsonResp)).Decode(&parsedResponse); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	// update user credit token for success request
+	if err := sso_utils.UpdateUserCredit(tx, h.userRepo, user, utils.FEATURE_STORY_GENERATOR_COST); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 

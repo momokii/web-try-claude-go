@@ -9,7 +9,7 @@
                 <div class="row justify-content-center">
                     <div class="col-xxl-6 col-xl-7 col-lg-8">
                         <div class="section-title text-center">
-                            <h2 class="mb-3 fw-bold">Project Gabut
+                            <h2 class="mb-3 fw-bold">Gabut Project
                                 <a href="https://github.com/momokii" target="_blank">
                                     <i class="fa fa-github"></i>
                                 </a>
@@ -19,11 +19,13 @@
                                 <p class="text-md mb-2">
                                     Welcome, <strong id="username" class="text-primary">{{ .User.Username }}</strong>! 👋
                                 </p>
+                                <p class="text-md mb-2">
+                                    Credit Tokens: <strong id="user-credits" class="text-success">{{ .User.CreditToken }}</strong>
+                                </p>
                                 <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
                             </div>
-                            <p class="text-lg mt-2">
-                                Mencoba beberapa implementasi penggunaan LLM (Large Language Model) dengan menggunakan
-                                Claude Sonnet 3.5 API dan GPT Series, beberapa sub project yang bisa dicoba ada di bawah. Thank You!
+                            <p class="text-lg mt-2"></p>
+                                Trying out some implementations of using LLM (Large Language Model) with Claude Sonnet 3.5 API and GPT Series, some (active) sub-projects that can be tried are below. Thank you!
                             </p>
                         </div>
                     </div>
@@ -33,16 +35,16 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Medium Roast</h3>
-                                <h6 class="year mt-3">Mari mencoba roasting akun medium anda atau siapa saja</h6>
+                                <h6 class="year mt-3">Let's try roasting your Medium account or anyone else's</h6>
                             </div>
                             <div class="pricing-list ">
                                 <p class="text text-justify">
-                                    Masukan akun medium anda, dan kami akan mencoba melakukan roasting terhadap akun anda. (bukan kami si, sesuai deskripsi, nanti minta tolong EyAy mencoba roasting akun medium anda).
+                                    Enter your Medium account, and we will try to roast it. (Not us, though—according to the description, we'll ask EyAy to roast your Medium account instead).
                                 </p>
                             </div>
                             <div class="pricing-btn rounded-buttons text-center">
                                 <a class="btn primary-btn rounded-full" href="/medium">
-                                    Meluncur!
+                                    Blast Off!
                                 </a>
                             </div>
                             <div class="bottom-shape">
@@ -98,17 +100,23 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Baku Hantam X</h3>
-                                <h6 class="year mt-3">Hasilkan analisis baku hantam yang terjadi di X</h6>
+                                <h6 class="year mt-3">Generate analysis of the fights happening on X</h6>
                             </div>
                             <div class="pricing-list">
                                 <p class="text text-justify">
-                                    Melakukan analisis dari website dibuat oleh mas <a href="https://x.com/zakiego" target="_blank">@zakiego</a> pada website  <a href="https://bakuhantam.dev/" target="_blank">Baku Hantam X</a> yang berisi rangkuman twit baku hantam tekbro dengan beberapa topik yang terjadi di platform X.
+                                    Analyze the website created by <a href="https://x.com/zakiego" target="_blank">@zakiego</a> on the website <a href="https://bakuhantam.dev/" target="_blank">Baku Hantam X</a> which contains summaries of tech bro fights on various topics happening on the X platform.
+                                </p>
+
+                                <hr>
+
+                                <p class="text text-danger text-center">
+                                    This feature is currently inactive. Please check back later.
                                 </p>
                             </div>
                             <div class="pricing-btn rounded-buttons text-center">
-                                <a class="btn primary-btn rounded-full" href="/baku-hantam">
-                                    Meluncur!
-                                </a>
+                                <button class="btn primary-btn rounded-full" disabled>
+                                    (Inactive)
+                                </button>
                             </div>
                             <div class="bottom-shape">
                                 <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 112.35">
@@ -162,16 +170,16 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Create Your Own Stories</h3>
-                                <h6 class="year mt-3">Hasilkan sebuah cerita dengan jalan cerita yang anda pilih sendiri</h6>
+                                <h6 class="year mt-3">Generate a story with your own chosen storyline</h6>
                             </div>
                             <div class="pricing-list">
                                 <p class="text text-justify">
-                                    Buat cerita seru dengan pilihan Anda sendiri! Dengan menggunakan Claude Sonnet 3.5 API untuk memulai petualangan, pilih tema, dan kami akan membuatkan cerita awal untuk Anda. Teruskan cerita dengan pilihan yang kami sediakan dan biarkan imajinasi Anda berkembang!
+                                    Create an exciting story with your own choices! Using the Claude Sonnet 3.5 API to kick off your adventure, select a theme, and we'll generate the opening story for you. Continue the journey with the choices we provide and let your imagination run wild!
                                 </p>
                             </div>
                             <div class="pricing-btn rounded-buttons text-center">
                                 <a class="btn primary-btn rounded-full" href="/stories">
-                                    Meluncur!
+                                    Blast Off!
                                 </a>
                             </div>
                             <div class="bottom-shape">
@@ -226,16 +234,16 @@
                         <div class="pricing-style-one d-flex flex-column h-100">
                             <div class="pricing-header text-center">
                                 <h3 class="sub-title">Image-to-</h3>
-                                <h6 class="year mt-3">Hasilkan sebuah creative content menarik dengan upload sebuah gambar</h6>
+                                <h6 class="year mt-3">Generate an interesting creative content by uploading an image</h6>
                             </div>
                             <div class="pricing-list">
                                 <p class="text text-justify">
-                                    Buat content seru dan menarik dengan upload gambar yang kamu punya! Kami akan mencoba menghasilkan cerita, puisi, atau kalimat-kalimat menarik berdasarkan gambar yang kamu upload juga sampai dengan audio nantinya.
+                                    Create exciting and engaging content by uploading your own images! We’ll generate a story, poem, or captivating lines based on your uploaded image—and even audio in the future!
                                 </p>
                             </div>
                             <div class="pricing-btn rounded-buttons text-center">
                                 <a class="btn primary-btn rounded-full" href="/creative-content">
-                                    Meluncur!
+                                    Blast Off!
                                 </a>
                             </div>
                             <div class="bottom-shape">

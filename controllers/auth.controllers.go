@@ -6,9 +6,10 @@ import (
 
 	"scrapper-test/database"
 	"scrapper-test/middlewares"
-	"scrapper-test/repository/session"
-	"scrapper-test/repository/user"
 	"scrapper-test/utils"
+
+	sso_session "github.com/momokii/go-sso-web/pkg/repository/session"
+	sso_user "github.com/momokii/go-sso-web/pkg/repository/user"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -20,11 +21,11 @@ type Auth struct {
 }
 
 type AuthHandler struct {
-	userRepo    user.UserRepo
-	sessionRepo session.SessionRepo
+	userRepo    sso_user.UserRepo
+	sessionRepo sso_session.SessionRepo
 }
 
-func NewAuthHandler(userRepo user.UserRepo, sessionRepo session.SessionRepo) *AuthHandler {
+func NewAuthHandler(userRepo sso_user.UserRepo, sessionRepo sso_session.SessionRepo) *AuthHandler {
 	return &AuthHandler{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,

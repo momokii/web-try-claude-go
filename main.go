@@ -6,17 +6,17 @@ import (
 	"scrapper-test/controllers"
 	"scrapper-test/database"
 	"scrapper-test/middlewares"
-	"scrapper-test/models"
-	"scrapper-test/repository/session"
-	"scrapper-test/repository/user"
 	"scrapper-test/utils/claude"
 	"scrapper-test/utils/openai"
 	"time"
 
+	sso_models "github.com/momokii/go-sso-web/pkg/models"
+	sso_session "github.com/momokii/go-sso-web/pkg/repository/session"
+	sso_user "github.com/momokii/go-sso-web/pkg/repository/user"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/html/v2"
@@ -56,14 +56,14 @@ func main() {
 	middlewares.InitSession()
 
 	// repo init
-	userRepo := user.NewUserRepo()
-	sessionRepo := session.NewSessionRepo()
+	userRepo := sso_user.NewUserRepo()
+	sessionRepo := sso_session.NewSessionRepo()
 
 	// controller
-	mediumController := controllers.NewMediumController(claude, openai)
-	bakuHantamController := controllers.NewBakuHantamController(claude, openai)
-	storiesController := controllers.NewStoriesController(claude, openai)
-	creativecontentController := controllers.NewCreativeContentController(openai)
+	mediumController := controllers.NewMediumController(claude, openai, *userRepo)
+	// bakuHantamController := controllers.NewBakuHantamController(claude, openai)
+	storiesController := controllers.NewStoriesController(claude, openai, *userRepo)
+	creativecontentController := controllers.NewCreativeContentController(openai, *userRepo)
 	authHandler := controllers.NewAuthHandler(*userRepo, *sessionRepo)
 
 	app := fiber.New(fiber.Config{
@@ -86,23 +86,23 @@ func main() {
 	app.Use(helmet.New())
 	app.Use(recover.New())
 	// not using rate limiter for now
-	app.Use(limiter.New(limiter.Config{
-		Max:               30,
-		Expiration:        1 * time.Minute,
-		LimiterMiddleware: limiter.SlidingWindow{}, // sliding window rate limiter,
-		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).Render("errorPage", fiber.Map{
-				"Title":   "Error",
-				"message": "kebanyakan riques bre, balik lagi ntar yak",
-				"Code":    fiber.StatusTooManyRequests,
-			})
-		},
-	}))
+	// app.Use(limiter.New(limiter.Config{
+	// 	Max:               30,
+	// 	Expiration:        1 * time.Minute,
+	// 	LimiterMiddleware: limiter.SlidingWindow{}, // sliding window rate limiter,
+	// 	LimitReached: func(c *fiber.Ctx) error {
+	// 		return c.Status(fiber.StatusTooManyRequests).Render("errorPage", fiber.Map{
+	// 			"Title":   "Error",
+	// 			"message": "kebanyakan riques bre, balik lagi ntar yak",
+	// 			"Code":    fiber.StatusTooManyRequests,
+	// 		})
+	// 	},
+	// }))
 	app.Static("/public", "./public")
 
 	// route
 	app.Get("/", middlewares.IsAuth, func(c *fiber.Ctx) error {
-		user := c.Locals("user").(models.UserSession)
+		user := c.Locals("user").(sso_models.UserSession)
 
 		return c.Render("index", fiber.Map{
 			"Title": "Hello, LLM!",
@@ -117,9 +117,10 @@ func main() {
 	app.Get("/medium", middlewares.IsAuth, mediumController.ViewMedium)
 	app.Post("/api/medium", middlewares.IsAuth, mediumController.PostMedium)
 
-	app.Get("/baku-hantam", middlewares.IsAuth, bakuHantamController.ViewBakuHantam)
-	app.Post("/api/baku-hantam", middlewares.IsAuth, bakuHantamController.PostBakuHantam)
-	app.Get("/api/baku-hantam/topics", middlewares.IsAuth, bakuHantamController.GetBakuHantamTopic)
+	// shutdown this feature beceause of the website that we crawl is down
+	// app.Get("/baku-hantam", middlewares.IsAuth, bakuHantamController.ViewBakuHantam)
+	// app.Post("/api/baku-hantam", middlewares.IsAuth, bakuHantamController.PostBakuHantam)
+	// app.Get("/api/baku-hantam/topics", middlewares.IsAuth, bakuHantamController.GetBakuHantamTopic)
 
 	app.Get("/stories", middlewares.IsAuth, storiesController.ViewStories)
 	app.Post("/api/stories/titles", middlewares.IsAuth, storiesController.CreateStoriesTitle)

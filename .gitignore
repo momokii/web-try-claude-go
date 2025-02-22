@@ -2,3 +2,6 @@ tmp
 .env
 run-docker.sh
 utils/example-module-ai
+
+
+public/dummy-data.js

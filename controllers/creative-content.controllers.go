@@ -6,21 +6,28 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"scrapper-test/database"
 	"scrapper-test/models"
 	"scrapper-test/utils"
 	"scrapper-test/utils/openai"
 	"strings"
 
+	sso_models "github.com/momokii/go-sso-web/pkg/models"
+	sso_user "github.com/momokii/go-sso-web/pkg/repository/user"
+	sso_utils "github.com/momokii/go-sso-web/pkg/utils"
+
 	"github.com/gofiber/fiber/v2"
 )
 
 type CreativeContentController struct {
-	openai openai.OpenAI
+	openai   openai.OpenAI
+	userRepo sso_user.UserRepo
 }
 
-func NewCreativeContentController(openai openai.OpenAI) *CreativeContentController {
+func NewCreativeContentController(openai openai.OpenAI, userRepo sso_user.UserRepo) *CreativeContentController {
 	return &CreativeContentController{
-		openai: openai,
+		openai:   openai,
+		userRepo: userRepo,
 	}
 }
 
@@ -131,6 +138,32 @@ func (h *CreativeContentController) GetImageAnalysis(c *fiber.Ctx) error {
 	)
 
 	// --------- main phase ------------
+
+	// get user and check user validity
+	user_session := c.Locals("user").(sso_models.UserSession)
+
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+	defer func() {
+		database.CommitOrRollback(tx, c, err)
+	}()
+
+	user, err := h.userRepo.FindByID(tx, user_session.Id)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if user.Id == 0 {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "user not found")
+	}
+
+	// check if user have enough credit token
+	if user.CreditToken < utils.FEATURE_CONTENT_GENERATOR_COST {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "Not enough credit token to use this feature")
+	}
+
 	// get image extension
 	imageExtension := filepath.Ext(uploaded_image.Filename)
 	imgExt := strings.TrimPrefix(imageExtension, ".")
@@ -206,6 +239,11 @@ func (h *CreativeContentController) GetImageAnalysis(c *fiber.Ctx) error {
 		if err = json.NewDecoder(strings.NewReader(creative_content_recommendation)).Decode(&contentRecommendationRes); err != nil {
 			return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 		}
+	}
+
+	// feature success executed, reduce user credit token
+	if err := sso_utils.UpdateUserCredit(tx, h.userRepo, user, utils.FEATURE_CONTENT_GENERATOR_COST); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
 	return utils.ResponseWithData(c, fiber.StatusOK, "list analysis images", fiber.Map{

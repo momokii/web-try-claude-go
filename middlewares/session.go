@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"scrapper-test/database"
-	"scrapper-test/models"
-	sessionRepo "scrapper-test/repository/session"
-	"scrapper-test/repository/user"
+
+	sso_models "github.com/momokii/go-sso-web/pkg/models"
+	sessionRepo "github.com/momokii/go-sso-web/pkg/repository/session"
+	sso_user "github.com/momokii/go-sso-web/pkg/repository/user"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -114,7 +115,7 @@ func IsAuth(c *fiber.Ctx) error {
 	}()
 
 	// check if session is valid
-	userRepo := user.NewUserRepo()
+	userRepo := sso_user.NewUserRepo()
 	session_repo := sessionRepo.NewSessionRepo()
 
 	// first check if session is valid on database
@@ -137,9 +138,11 @@ func IsAuth(c *fiber.Ctx) error {
 		return c.Redirect(SSO_URL)
 	}
 
-	userSession := models.UserSession{
-		Id:       userData.Id,
-		Username: userData.Username,
+	userSession := sso_models.UserSession{
+		Id:               userData.Id,
+		Username:         userData.Username,
+		CreditToken:      userData.CreditToken,
+		LastFirstLLMUsed: userData.LastFirstLLMUsed,
 	}
 
 	// store information for next data
